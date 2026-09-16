@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 {% block title %}Sign up &bullet; {{ app_name }}{% endblock %}
 {% block head %}
-	<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
 {% block content %}
-	<div class="verification-panel">
-		<h1>Complete sign-up</h1>
-		<p class="muted">Complete the check below to create your account.</p>
-		{% if errors %}
-			<div class="notice error">
-				<ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
-			</div>
-		{% endif %}
-		<form class="verification-form" method="post" action="/auth/verify">
-			<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-			<div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="dark" data-size="flexible" data-action="discord_signup"></div>
-			<button type="submit">Create account</button>
-		</form>
-	</div>
+  <div class="verification-panel">
+    <h1>Complete sign-up</h1>
+    <p class="muted">Complete the check below to create your account.</p>
+    {% if errors %}
+      <div class="notice error">
+        <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+      </div>
+    {% endif %}
+    <form class="verification-form" method="post" action="/auth/verify">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="dark" data-size="flexible" data-action="discord_signup"></div>
+      <button type="submit">Create account</button>
+    </form>
+  </div>
 {% endblock %}

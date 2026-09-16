@@ -2,9 +2,9 @@
 {% block title %}{{ category.name }} rules &bullet; {{ app_name }}{% endblock %}
 {% block social_meta %}<meta property="og:title" content="{{ self.title()|striptags|forceescape }}">{% endblock %}
 {% block content %}
-	<div class="title-row" style="padding-top: 7px">
-		<div><p class="eyebrow">{{ category.build_name }} (v{{ category.build_version }})</p><h1 style="padding-top: 1px;">{{ category.name }} rules</h1></div>
-		<a href="/{{ category.build_slug }}/{{ category.slug }}">Back to leaderboard</a>
-	</div>
-	<article class="rules-content">{{ rules_html }}</article>
+  <div class="title-row" style="padding-top: 7px">
+    <div><p class="eyebrow">{{ category.build_name }} (v{{ category.build_version }})</p><h1 style="padding-top: 1px;">{{ category.name }} rules</h1></div>
+    <a href="/{{ category.build_slug }}/{{ category.slug }}">Back to leaderboard</a>
+  </div>
+  <article class="rules-content">{{ rules_html }}</article>
 {% endblock %}

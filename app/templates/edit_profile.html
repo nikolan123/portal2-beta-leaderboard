@@ -1,35 +1,35 @@
 {% extends "base.html" %}
 {% block title %}Edit profile &bullet; {{ app_name }}{% endblock %}
 {% block content %}
-	<div class="title-row">
-		<h1>Edit profile</h1>
-		<a href="/users/{{ current_user.discord_id }}">Cancel</a>
-	</div>
+  <div class="title-row">
+    <h1>Edit profile</h1>
+    <a href="/users/{{ current_user.discord_id }}">Cancel</a>
+  </div>
 
-	{% if errors %}
-		<div class="notice error">
-			<ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
-		</div>
-	{% endif %}
+  {% if errors %}
+    <div class="notice error">
+      <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
 
-	<form class="form-panel" method="post" action="/me/profile">
-		<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-		<label>
-			Bio <span class="muted">(optional)</span>
-			<textarea name="bio" rows="5" maxlength="500" placeholder="Tell people a little about yourself.">{{ values.bio }}</textarea>
-			<span class="muted">Markdown: **bold**, *italic*, ~~strikethrough~~, [link](https://example.com).</span>
-		</label>
-		<fieldset class="color-picker">
-			<legend>Profile background</legend>
-			<div class="color-options">
-				{% for color in colors %}
-					<label class="color-option profile-color-{{ color.value }}">
-						<input type="radio" name="background_color" value="{{ color.value }}" {% if values.background_color == color.value %}checked{% endif %} required>
-						<span>{{ color.label }}</span>
-					</label>
-				{% endfor %}
-			</div>
-		</fieldset>
-		<button type="submit">Save profile</button>
-	</form>
+  <form class="form-panel" method="post" action="/me/profile">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>
+      Bio <span class="muted">(optional)</span>
+      <textarea name="bio" rows="5" maxlength="500" placeholder="Tell people a little about yourself.">{{ values.bio }}</textarea>
+      <span class="muted">Markdown: **bold**, *italic*, ~~strikethrough~~, [link](https://example.com).</span>
+    </label>
+    <fieldset class="color-picker">
+      <legend>Profile background</legend>
+      <div class="color-options">
+        {% for color in colors %}
+          <label class="color-option profile-color-{{ color.value }}">
+            <input type="radio" name="background_color" value="{{ color.value }}" {% if values.background_color == color.value %}checked{% endif %} required>
+            <span>{{ color.label }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <button type="submit">Save profile</button>
+  </form>
 {% endblock %}

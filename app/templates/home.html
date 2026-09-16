@@ -3,15 +3,15 @@
 {% block social_meta %}<meta property="og:title" content="{{ self.title()|striptags|forceescape }}">{% endblock %}
 {% block content %}
 <div class="build-list">
-	{% for build in builds %}
-		<section class="build-group">
-			<h2 class="category-header"><a href="/{{ build.slug }}">{{ build.name }} <small>(v{{ build.version }})</small></a></h2>
-			<nav class="category-list" aria-label="{{ build.name }} {{ build.version }} categories">
-				{% for category in build.categories %}
-					<a href="/{{ build.slug }}/{{ category.slug }}">&bullet; {{ category.name }}</a>
-				{% endfor %}
-			</nav>
-		</section>
-	{% endfor %}
+  {% for build in builds %}
+    <section class="build-group">
+      <h2 class="category-header"><a href="/{{ build.slug }}">{{ build.name }} <small>(v{{ build.version }})</small></a></h2>
+      <nav class="category-list" aria-label="{{ build.name }} {{ build.version }} categories">
+        {% for category in build.categories %}
+          <a href="/{{ build.slug }}/{{ category.slug }}">&bullet; {{ category.name }}</a>
+        {% endfor %}
+      </nav>
+    </section>
+  {% endfor %}
 </div>
 {% endblock %}

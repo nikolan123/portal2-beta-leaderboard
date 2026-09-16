@@ -1,109 +1,109 @@
 <!doctype html>
 <html lang="en" class="{% block page_class %}{% endblock %}">
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="icon" type="image/x-icon" href="{{ url_for('static', path='p2bsr-logo.png') }}">
-	<title>{% block title %}{{ app_name }}{% endblock %}</title>
-	{% block social_meta %}{% endblock %}
-	<link rel="preload" href="{{ url_for('static', path='fonts/D-DIN.woff') }}" as="font" type="font/woff" crossorigin>
-	<link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}?v={{ css_version }}">
-	{% block head %}{% endblock %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='p2bsr-logo.png') }}">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  {% block social_meta %}{% endblock %}
+  <link rel="preload" href="{{ url_for('static', path='fonts/D-DIN.woff') }}" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}?v={{ css_version }}">
+  {% block head %}{% endblock %}
 </head>
 <body>
-	<header class="site-header">
-		<div class="wrap nav-wrap">
-			<span class="inline-brand">
-				<img src="{{ url_for('static', path='p2bsr-logo.png') }}" width="32"/>
-				<a class="brand" href="/">{{ app_name }}</a>
-			</span>
-			<nav aria-label="Primary">
-				<a href="/about">About</a>
-				{% if current_user %}
-					<a href="/submit">Submit</a>
-					{% if is_moderator %}<a href="/moderation">Moderation</a>{% endif %}
-					{% if is_owner %}<a href="/owner/audit-log">Audit log</a><a href="/owner/mods">Mods</a>{% endif %}
-					<a class="user-link" href="/users/{{ current_user.discord_id }}" title="My profile">
-						<img class="user-avatar" src="{{ current_user_avatar_url }}" alt="" width="24" height="24">
-						<span>{{ current_user.display_name }}</span>
-					</a>
-					<form class="inline-form" method="post" action="/auth/logout">
-						<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-						<button class="link-button" type="submit">Log out</button>
-					</form>
-				{% else %}
-					{% if oauth_ready %}<a href="/auth/login">Sign in</a>{% endif %}
-				{% endif %}
-			</nav>
-		</div>
-	</header>
+  <header class="site-header">
+    <div class="wrap nav-wrap">
+      <span class="inline-brand">
+        <img src="{{ url_for('static', path='p2bsr-logo.png') }}" width="32"/>
+        <a class="brand" href="/">{{ app_name }}</a>
+      </span>
+      <nav aria-label="Primary">
+        <a href="/about">About</a>
+        {% if current_user %}
+          <a href="/submit">Submit</a>
+          {% if is_moderator %}<a href="/moderation">Moderation</a>{% endif %}
+          {% if is_owner %}<a href="/owner/audit-log">Audit log</a><a href="/owner/mods">Mods</a>{% endif %}
+          <a class="user-link" href="/users/{{ current_user.discord_id }}" title="My profile">
+            <img class="user-avatar" src="{{ current_user_avatar_url }}" alt="" width="24" height="24">
+            <span>{{ current_user.display_name }}</span>
+          </a>
+          <form class="inline-form" method="post" action="/auth/logout">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="link-button" type="submit">Log out</button>
+          </form>
+        {% else %}
+          {% if oauth_ready %}<a href="/auth/login">Sign in</a>{% endif %}
+        {% endif %}
+      </nav>
+    </div>
+  </header>
 
-	<main class="wrap">
-		{% if not oauth_ready %}
-			<div class="notice warning">Discord OAuth is not configured.</div>
-		{% endif %}
-		{% if flash %}
-			<div class="notice {{ flash.kind }}">{{ flash.message }}</div>
-		{% endif %}
-		{% block content %}{% endblock %}
-	</main>
-	<script>
-		(function () {
-			var popover = document.createElement('div');
-			popover.className = 'popover';
-			popover.setAttribute('role', 'tooltip');
-			popover.hidden = true;
-			document.body.appendChild(popover);
+  <main class="wrap">
+    {% if not oauth_ready %}
+      <div class="notice warning">Discord OAuth is not configured.</div>
+    {% endif %}
+    {% if flash %}
+      <div class="notice {{ flash.kind }}">{{ flash.message }}</div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <script>
+    (function () {
+      var popover = document.createElement('div');
+      popover.className = 'popover';
+      popover.setAttribute('role', 'tooltip');
+      popover.hidden = true;
+      document.body.appendChild(popover);
 
-			var current = null;
+      var current = null;
 
-			document.querySelectorAll('[data-tip]').forEach(function (element) {
-				if (!element.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(element.tagName)) element.tabIndex = 0;
-			});
+      document.querySelectorAll('[data-tip]').forEach(function (element) {
+        if (!element.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(element.tagName)) element.tabIndex = 0;
+      });
 
-			function show(element) {
-				popover.textContent = element.getAttribute('data-tip');
-				popover.hidden = false;
-				popover.style.visibility = 'hidden';
-				popover.style.left = '0px';
-				popover.style.top = '0px';
-				var width = popover.offsetWidth;
-				var height = popover.offsetHeight;
-				var rect = element.getBoundingClientRect();
-				var x = rect.left + rect.width / 2 - width / 2;
-				x = Math.min(Math.max(8, x), window.innerWidth - width - 8);
-				var y = rect.top - height - 8;
-				if (y < 8) y = rect.bottom + 8;
-				popover.style.left = x + 'px';
-				popover.style.top = y + 'px';
-				popover.style.visibility = '';
-				current = element;
-			}
+      function show(element) {
+        popover.textContent = element.getAttribute('data-tip');
+        popover.hidden = false;
+        popover.style.visibility = 'hidden';
+        popover.style.left = '0px';
+        popover.style.top = '0px';
+        var width = popover.offsetWidth;
+        var height = popover.offsetHeight;
+        var rect = element.getBoundingClientRect();
+        var x = rect.left + rect.width / 2 - width / 2;
+        x = Math.min(Math.max(8, x), window.innerWidth - width - 8);
+        var y = rect.top - height - 8;
+        if (y < 8) y = rect.bottom + 8;
+        popover.style.left = x + 'px';
+        popover.style.top = y + 'px';
+        popover.style.visibility = '';
+        current = element;
+      }
 
-			function hide() {
-				popover.hidden = true;
-				current = null;
-			}
+      function hide() {
+        popover.hidden = true;
+        current = null;
+      }
 
-			document.addEventListener('mouseover', function (event) {
-				var element = event.target.closest ? event.target.closest('[data-tip]') : null;
-				if (element) {
-					if (element !== current) show(element);
-				} else {
-					hide();
-				}
-			});
-			document.addEventListener('mouseout', function (event) {
-				if (current && event.relatedTarget && !current.contains(event.relatedTarget)) hide();
-			});
-			document.addEventListener('focusin', function (event) {
-				var element = event.target.closest ? event.target.closest('[data-tip]') : null;
-				if (element) show(element);
-				else hide();
-			});
-			document.addEventListener('focusout', hide);
-			document.addEventListener('scroll', hide, true);
-		})();
-	</script>
+      document.addEventListener('mouseover', function (event) {
+        var element = event.target.closest ? event.target.closest('[data-tip]') : null;
+        if (element) {
+          if (element !== current) show(element);
+        } else {
+          hide();
+        }
+      });
+      document.addEventListener('mouseout', function (event) {
+        if (current && event.relatedTarget && !current.contains(event.relatedTarget)) hide();
+      });
+      document.addEventListener('focusin', function (event) {
+        var element = event.target.closest ? event.target.closest('[data-tip]') : null;
+        if (element) show(element);
+        else hide();
+      });
+      document.addEventListener('focusout', hide);
+      document.addEventListener('scroll', hide, true);
+    })();
+  </script>
 </body>
 </html>

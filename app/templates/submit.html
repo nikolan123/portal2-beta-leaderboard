@@ -4,48 +4,48 @@
 {% if turnstile_enabled %}<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>{% endif %}
 {% endblock %}
 {% block content %}
-	<div class="title-row"><h1>Submit</h1></div>
+  <div class="title-row"><h1>Submit</h1></div>
 
-	{% if errors %}
-		<div class="notice error">
-			<ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
-		</div>
-	{% endif %}
+  {% if errors %}
+    <div class="notice error">
+      <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    </div>
+  {% endif %}
 
-	<form class="form-panel" method="post" action="/submit">
-		<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-		<label>
-			Category
-			<select name="category_id" required>
-				{% for category in categories %}
-					{% if loop.first or category.build_slug != categories[loop.index0 - 1].build_slug %}
-						{% if not loop.first %}</optgroup>{% endif %}
-						<optgroup label="{{ category.build_name }}">
-					{% endif %}
-					<option value="{{ category.id }}" {% if values.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
-					{% if loop.last %}</optgroup>{% endif %}
-				{% endfor %}
-			</select>
-		</label>
-		<label>
-			Time
-			<input name="run_time" value="{{ values.run_time or '' }}" placeholder="1:02:34.567" autocomplete="off" required>
-		</label>
-		<label>
-			Video URL
-			<input type="url" name="video_url" value="{{ values.video_url or '' }}" placeholder="https://youtu.be/..." maxlength="500" required>
-		</label>
-		<label>
-			<span>Splits URL <span class="muted">(optional)</span></span>
-			<input type="url" name="splits_url" value="{{ values.splits_url or '' }}" placeholder="https://therun.gg/..." maxlength="500">
-		</label>
-		<label>
-			<span>Notes <span class="muted">(optional)</span></span>
-			<textarea name="notes" rows="4" maxlength="2000">{{ values.notes or '' }}</textarea>
-		</label>
-		{% if turnstile_enabled %}
-			<div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="dark" data-size="flexible" data-action="submit_run"></div>
-		{% endif %}
-		<button type="submit">Submit</button>
-	</form>
+  <form class="form-panel" method="post" action="/submit">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>
+      Category
+      <select name="category_id" required>
+        {% for category in categories %}
+          {% if loop.first or category.build_slug != categories[loop.index0 - 1].build_slug %}
+            {% if not loop.first %}</optgroup>{% endif %}
+            <optgroup label="{{ category.build_name }}">
+          {% endif %}
+          <option value="{{ category.id }}" {% if values.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+          {% if loop.last %}</optgroup>{% endif %}
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Time
+      <input name="run_time" value="{{ values.run_time or '' }}" placeholder="1:02:34.567" autocomplete="off" required>
+    </label>
+    <label>
+      Video URL
+      <input type="url" name="video_url" value="{{ values.video_url or '' }}" placeholder="https://youtu.be/..." maxlength="500" required>
+    </label>
+    <label>
+      <span>Splits URL <span class="muted">(optional)</span></span>
+      <input type="url" name="splits_url" value="{{ values.splits_url or '' }}" placeholder="https://therun.gg/..." maxlength="500">
+    </label>
+    <label>
+      <span>Notes <span class="muted">(optional)</span></span>
+      <textarea name="notes" rows="4" maxlength="2000">{{ values.notes or '' }}</textarea>
+    </label>
+    {% if turnstile_enabled %}
+      <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="dark" data-size="flexible" data-action="submit_run"></div>
+    {% endif %}
+    <button type="submit">Submit</button>
+  </form>
 {% endblock %}

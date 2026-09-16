@@ -3,113 +3,113 @@
 {% block social_meta %}{% if run.status == 'approved' %}<meta property="og:title" content="{{ self.title()|striptags|forceescape }}">{% endif %}{% endblock %}
 {% block content %}
 <div class="build-layout">
-	<div>
-		<p class="eyebrow"><a href="/{{ run.category.build_slug }}">{{ run.category.build_name }} (v{{ run.category.build_version }})</a> &bullet; <a href="/{{ run.category.build_slug }}/{{ run.category.slug }}">{{ run.category.name }}</a></p>
-		<h1 class="run-time-head">{{ run.time_ms|runtime }}</h1>
-		{% if embed_url %}
-			<div class="video-embed"><iframe src="{{ embed_url }}" title="Embedded proof video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
-			<p class="muted proof-links">
-				<a class="icon-link" href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer" aria-label="Open proof video">
-					<span class="icon icon-lg icon-video" aria-hidden="true"></span>
-					<span>Open proof video</span>
-				</a>
-				{% if run.splits_url %}
-					<a class="icon-link" href="{{ run.splits_url }}" target="_blank" rel="noopener noreferrer" aria-label="View splits for this run">
-						<span class="icon icon-lg icon-splits" aria-hidden="true"></span>
-						<span>View splits for this run</span>
-					</a>
-				{% endif %}
-			</p>
-		{% elif direct_video_url %}
-			<div class="video-embed"><video controls preload="metadata" src="{{ direct_video_url }}"><a href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer">Open proof video</a></video></div>
-			<p class="muted proof-links">
-				<a class="icon-link" href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer" aria-label="Open proof video">
-					<span class="icon icon-lg icon-video" aria-hidden="true"></span>
-					<span>Open proof video</span>
-				</a>
-				{% if run.splits_url %}
-					<a class="icon-link" href="{{ run.splits_url }}" target="_blank" rel="noopener noreferrer" aria-label="View splits for this run">
-						<span class="icon icon-lg icon-splits" aria-hidden="true"></span>
-						<span>View splits for this run</span>
-					</a>
-				{% endif %}
-			</p>
-		{% elif run.video_url %}
-			<p class="proof-links">
-				<a class="icon-link" href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer" aria-label="Open proof video">
-					<span class="icon icon-lg icon-video" aria-hidden="true"></span>
-					<span>Open proof video</span>
-				</a>
-				{% if run.splits_url %}
-					<a class="icon-link" href="{{ run.splits_url }}" target="_blank" rel="noopener noreferrer" aria-label="View splits for this run">
-						<span class="icon icon-lg icon-splits" aria-hidden="true"></span>
-						<span>View splits for this run</span>
-					</a>
-				{% endif %}
-			</p>
-		{% elif run.splits_url %}
-			<p class="proof-links">
-				<a class="icon-link" href="{{ run.splits_url }}" target="_blank" rel="noopener noreferrer" aria-label="View splits for this run">
-					<span class="icon icon-lg icon-splits" aria-hidden="true"></span>
-					<span>View splits for this run</span>
-				</a>
-			</p>
-		{% else %}
-			<p class="muted">No video proof provided.</p>
-		{% endif %}
+  <div>
+    <p class="eyebrow"><a href="/{{ run.category.build_slug }}">{{ run.category.build_name }} (v{{ run.category.build_version }})</a> &bullet; <a href="/{{ run.category.build_slug }}/{{ run.category.slug }}">{{ run.category.name }}</a></p>
+    <h1 class="run-time-head">{{ run.time_ms|runtime }}</h1>
+    {% if embed_url %}
+      <div class="video-embed"><iframe src="{{ embed_url }}" title="Embedded proof video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+      <p class="muted proof-links">
+        <a class="icon-link" href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer" aria-label="Open proof video">
+          <span class="icon icon-lg icon-video" aria-hidden="true"></span>
+          <span>Open proof video</span>
+        </a>
+        {% if run.splits_url %}
+          <a class="icon-link" href="{{ run.splits_url }}" target="_blank" rel="noopener noreferrer" aria-label="View splits for this run">
+            <span class="icon icon-lg icon-splits" aria-hidden="true"></span>
+            <span>View splits for this run</span>
+          </a>
+        {% endif %}
+      </p>
+    {% elif direct_video_url %}
+      <div class="video-embed"><video controls preload="metadata" src="{{ direct_video_url }}"><a href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer">Open proof video</a></video></div>
+      <p class="muted proof-links">
+        <a class="icon-link" href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer" aria-label="Open proof video">
+          <span class="icon icon-lg icon-video" aria-hidden="true"></span>
+          <span>Open proof video</span>
+        </a>
+        {% if run.splits_url %}
+          <a class="icon-link" href="{{ run.splits_url }}" target="_blank" rel="noopener noreferrer" aria-label="View splits for this run">
+            <span class="icon icon-lg icon-splits" aria-hidden="true"></span>
+            <span>View splits for this run</span>
+          </a>
+        {% endif %}
+      </p>
+    {% elif run.video_url %}
+      <p class="proof-links">
+        <a class="icon-link" href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer" aria-label="Open proof video">
+          <span class="icon icon-lg icon-video" aria-hidden="true"></span>
+          <span>Open proof video</span>
+        </a>
+        {% if run.splits_url %}
+          <a class="icon-link" href="{{ run.splits_url }}" target="_blank" rel="noopener noreferrer" aria-label="View splits for this run">
+            <span class="icon icon-lg icon-splits" aria-hidden="true"></span>
+            <span>View splits for this run</span>
+          </a>
+        {% endif %}
+      </p>
+    {% elif run.splits_url %}
+      <p class="proof-links">
+        <a class="icon-link" href="{{ run.splits_url }}" target="_blank" rel="noopener noreferrer" aria-label="View splits for this run">
+          <span class="icon icon-lg icon-splits" aria-hidden="true"></span>
+          <span>View splits for this run</span>
+        </a>
+      </p>
+    {% else %}
+      <p class="muted">No video proof provided.</p>
+    {% endif %}
 
-		{% if run.notes %}<div class="notes run-notes-block"><h2>Notes</h2><p>{{ run.notes }}</p></div>{% endif %}
-		<div class="cards">
-			<div class="card"><span class="card-label">Runner</span><span><a href="/users/{{ run.runner.discord_id }}">{{ run.runner.display_name }}</a></span></div>
-			<div class="card"><span class="card-label">Submitted</span><span>{{ run.submitted_at.strftime('%Y-%m-%d %H:%M UTC') }}<br><span class="muted">({{ run.submitted_at|timeago }})</span></span></div>
-			<div class="card"><span class="card-label">Rank</span><span>{{ rank_label }}</span></div>
-			<div class="card"><span class="card-label">Time</span><span class="time">{{ run.time_ms|runtime }}</span></div>
-			<div class="card"><span class="card-label">Verified by</span><span>{% if run.reviewed_by %}<a href="/users/{{ run.reviewed_by.discord_id }}">{{ run.reviewed_by.display_name }}</a>{% else %}—{% endif %}</span></div>
-			<div class="card"><span class="card-label">Status</span><span class="status {{ run.status }}">{{ run.status }}</span></div>
-		</div>
-		{% if run.status == 'rejected' %}<p class="error-text">{{ run.rejection_reason }}</p>{% endif %}
-		{% if is_moderator %}
-			<div class="run-admin-actions">
-				<a href="/moderation/runs/{{ run.id }}/edit">Edit run</a>
-				<form method="post" action="/runs/{{ run.id }}/delete" onsubmit="return confirm('Delete this run permanently?');">
-					<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-					<input type="hidden" name="return_to" value="category">
-					<button class="danger" type="submit">Delete run</button>
-				</form>
-			</div>
-		{% endif %}
-	</div>
-	<aside class="build-side">
-		<section aria-label="Latest runs">
-			<h2>Latest runs</h2>
-			{% if latest_runs %}
-				<ul class="feed">
-					{% for feed_run in latest_runs %}
-						<li>
-							<a class="time" href="/runs/{{ feed_run.id }}">{{ feed_run.time_ms|runtime }}</a>
-							by <a href="/users/{{ feed_run.runner.discord_id }}">{{ feed_run.runner.display_name }}</a>
-							<div class="feed-meta">
-								<a href="/{{ feed_run.category.build_slug }}/{{ feed_run.category.slug }}">{{ feed_run.category.name }}</a> &bullet; <span data-tip="{{ feed_run.submitted_at.strftime('%Y-%m-%d %H:%M UTC') }}">{{ feed_run.submitted_at|timeago }}</span>
-							</div>
-						</li>
-					{% endfor %}
-				</ul>
-			{% else %}
-				<p class="empty">No runs yet.</p>
-			{% endif %}
-		</section>
-		<section aria-label="Moderators">
-			<h2>Moderators</h2>
-			{% if moderators %}
-				<ul class="side-mods">
-					{% for moderator in moderators %}
-						<li><a href="/users/{{ moderator.user.discord_id }}"><img src="{{ moderator.avatar_url }}" alt="" width="24" height="24" loading="lazy">{{ moderator.user.display_name }}</a></li>
-					{% endfor %}
-				</ul>
-			{% else %}
-				<p class="empty">No moderators yet.</p>
-			{% endif %}
-		</section>
-	</aside>
+    {% if run.notes %}<div class="notes run-notes-block"><h2>Notes</h2><p>{{ run.notes }}</p></div>{% endif %}
+    <div class="cards">
+      <div class="card"><span class="card-label">Runner</span><span><a href="/users/{{ run.runner.discord_id }}">{{ run.runner.display_name }}</a></span></div>
+      <div class="card"><span class="card-label">Submitted</span><span>{{ run.submitted_at.strftime('%Y-%m-%d %H:%M UTC') }}<br><span class="muted">({{ run.submitted_at|timeago }})</span></span></div>
+      <div class="card"><span class="card-label">Rank</span><span>{{ rank_label }}</span></div>
+      <div class="card"><span class="card-label">Time</span><span class="time">{{ run.time_ms|runtime }}</span></div>
+      <div class="card"><span class="card-label">Verified by</span><span>{% if run.reviewed_by %}<a href="/users/{{ run.reviewed_by.discord_id }}">{{ run.reviewed_by.display_name }}</a>{% else %}—{% endif %}</span></div>
+      <div class="card"><span class="card-label">Status</span><span class="status {{ run.status }}">{{ run.status }}</span></div>
+    </div>
+    {% if run.status == 'rejected' %}<p class="error-text">{{ run.rejection_reason }}</p>{% endif %}
+    {% if is_moderator %}
+      <div class="run-admin-actions">
+        <a href="/moderation/runs/{{ run.id }}/edit">Edit run</a>
+        <form method="post" action="/runs/{{ run.id }}/delete" onsubmit="return confirm('Delete this run permanently?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <input type="hidden" name="return_to" value="category">
+          <button class="danger" type="submit">Delete run</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+  <aside class="build-side">
+    <section aria-label="Latest runs">
+      <h2>Latest runs</h2>
+      {% if latest_runs %}
+        <ul class="feed">
+          {% for feed_run in latest_runs %}
+            <li>
+              <a class="time" href="/runs/{{ feed_run.id }}">{{ feed_run.time_ms|runtime }}</a>
+              by <a href="/users/{{ feed_run.runner.discord_id }}">{{ feed_run.runner.display_name }}</a>
+              <div class="feed-meta">
+                <a href="/{{ feed_run.category.build_slug }}/{{ feed_run.category.slug }}">{{ feed_run.category.name }}</a> &bullet; <span data-tip="{{ feed_run.submitted_at.strftime('%Y-%m-%d %H:%M UTC') }}">{{ feed_run.submitted_at|timeago }}</span>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty">No runs yet.</p>
+      {% endif %}
+    </section>
+    <section aria-label="Moderators">
+      <h2>Moderators</h2>
+      {% if moderators %}
+        <ul class="side-mods">
+          {% for moderator in moderators %}
+            <li><a href="/users/{{ moderator.user.discord_id }}"><img src="{{ moderator.avatar_url }}" alt="" width="24" height="24" loading="lazy">{{ moderator.user.display_name }}</a></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty">No moderators yet.</p>
+      {% endif %}
+    </section>
+  </aside>
 </div>
 {% endblock %}
