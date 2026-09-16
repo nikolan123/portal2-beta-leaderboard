@@ -12,12 +12,24 @@
 </head>
 <body>
   <header class="site-header">
-    <div class="wrap nav-wrap">
-      <span class="inline-brand">
-        <img src="{{ url_for('static', path='p2bsr-logo.png') }}" width="32"/>
-        <a class="brand" href="/">{{ app_name }}</a>
-      </span>
-      <nav aria-label="Primary">
+    <div class="wrap nav-wrap{% if current_user %} has-session{% endif %}">
+      <div class="brand-row">
+        <span class="inline-brand">
+          <img src="{{ url_for('static', path='p2bsr-logo.png') }}" width="32"/>
+          <a class="brand" href="/">{{ app_name }}</a>
+        </span>
+        <span class="brand-actions">
+          {% if current_user %}
+            <a class="brand-avatar" href="/users/{{ current_user.discord_id }}" title="My profile" tabindex="-1" aria-hidden="true">
+              <img class="user-avatar" src="{{ current_user_avatar_url }}" alt="" width="28" height="28">
+            </a>
+          {% endif %}
+          <button class="menu-button" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Menu" hidden>
+            <span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+          </button>
+        </span>
+      </div>
+      <nav id="primary-nav" aria-label="Primary">
         <a href="/about">About</a>
         {% if current_user %}
           <a href="/submit">Submit</a>
@@ -103,6 +115,27 @@
       });
       document.addEventListener('focusout', hide);
       document.addEventListener('scroll', hide, true);
+    })();
+  </script>
+  <script>
+    (function () {
+      var wrap = document.querySelector('.nav-wrap');
+      var button = document.querySelector('.menu-button');
+      var nav = document.getElementById('primary-nav');
+      if (!wrap || !button || !nav) return;
+      wrap.classList.add('menu-ready');
+      button.hidden = false;
+      button.addEventListener('click', function () {
+        var open = wrap.classList.toggle('open');
+        button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && wrap.classList.contains('open')) {
+          wrap.classList.remove('open');
+          button.setAttribute('aria-expanded', 'false');
+          button.focus();
+        }
+      });
     })();
   </script>
 </body>
