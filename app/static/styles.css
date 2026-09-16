@@ -1,3 +1,28 @@
+/* D-DIN (source: fonts.cdnfonts.com/css/d-din) */
+@font-face {
+	font-family: 'D-DIN';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("fonts/D-DIN.woff") format("woff");
+}
+
+@font-face {
+	font-family: 'D-DIN';
+	font-style: italic;
+	font-weight: 400;
+	font-display: swap;
+	src: url("fonts/D-DIN-Italic.woff") format("woff");
+}
+
+@font-face {
+	font-family: 'D-DIN';
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("fonts/D-DIN-Bold.woff") format("woff");
+}
+
 :root {
 	color-scheme: dark;
 	--bg: #111214;
