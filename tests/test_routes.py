@@ -73,6 +73,43 @@ def test_category_rules_are_rendered_from_markdown(monkeypatch, tmp_path):
         assert "<p>TBD</p>" in response.text
         assert response.text.count("<h1") == 1
 
+def test_category_rules_strip_unsafe_html_but_keep_rich_content(monkeypatch, tmp_path):
+    rules_dir = tmp_path / "rules"
+    rules_dir.mkdir()
+    (rules_dir / "category.md").write_text(
+        "# Rules\n\n<script>alert(1)</script>\n\n"
+        "[bad](javascript:alert(1))\n\n"
+        "![shot](https://example.com/shot.png)\n\n"
+        "| A | B |\n|---|---|\n| 1 | 2 |\n\n"
+        "```python\nprint(1)\n```\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(main_module, "BASE_DIR", tmp_path / "app")
+    monkeypatch.setattr(main_module, "RULES_DIR", rules_dir)
+
+    with TestClient(app) as client:
+        with SessionLocal() as db:
+            db.add(
+                Category(
+                    slug="route-test-sanitized",
+                    name="Route Test Sanitized",
+                    build_slug="route-test-build",
+                    build_name="Route Test Build",
+                    rules_file="rules/category.md",
+                )
+            )
+            db.commit()
+
+        response = client.get("/route-test-build/route-test-sanitized/rules")
+        assert response.status_code == 200
+        (article,) = re.findall(r'<article class="rules-content">(.*?)</article>', response.text, re.S)
+        assert "<script" not in article
+        assert "javascript:" not in article
+        assert "<h1>Rules</h1>" in article
+        assert 'src="https://example.com/shot.png"' in article
+        assert "<table>" in article
+        assert '<code class="language-python">' in article
+
 def test_missing_category_uses_html_error_template():
     with TestClient(app) as client:
         response = client.get("/no-such-build/no-such-category")

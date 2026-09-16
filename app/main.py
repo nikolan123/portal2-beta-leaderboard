@@ -7,9 +7,10 @@ import time
 from contextlib import asynccontextmanager, closing
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 import markdown
-from urllib.parse import urlparse
+import nh3
 from fastapi import BackgroundTasks, Depends, FastAPI, Form, HTTPException, Request, status
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -1448,9 +1449,26 @@ def category_rules(
         raise HTTPException(status_code=404, detail="Rules not found.")
 
     rules_html = Markup(
-        markdown.markdown(
-            rules_path.read_text(encoding="utf-8"),
-            extensions=["extra", "sane_lists"],
+        nh3.clean(
+            markdown.markdown(
+                rules_path.read_text(encoding="utf-8"),
+                extensions=["extra", "sane_lists"],
+            ),
+            tags={
+                "h1", "h2", "h3", "h4", "h5", "h6",
+                "p", "br", "hr", "ul", "ol", "li",
+                "a", "strong", "em", "del", "code", "pre", "blockquote",
+                "table", "thead", "tbody", "tr", "th", "td",
+                "img",
+            },
+            attributes={
+                "a": {"href", "title"},
+                "img": {"src", "alt", "title", "width", "height"},
+                "code": {"class"},
+                "pre": {"class"},
+            },
+            url_schemes={"https", "http", "mailto"},
+            link_rel="noopener noreferrer nofollow",
         )
     )
     return render_template(
