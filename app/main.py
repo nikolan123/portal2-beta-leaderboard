@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 import markdown
+from urllib.parse import urlparse
 from fastapi import BackgroundTasks, Depends, FastAPI, Form, HTTPException, Request, status
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -175,6 +176,53 @@ app.add_middleware(
     same_site="lax",
     https_only=settings.cookie_secure,
 )
+
+_parsed_base_url = urlparse(settings.base_url)
+_canonical_host = (_parsed_base_url.hostname or "").lower()
+_canonical_scheme = _parsed_base_url.scheme or "https"
+_canonical_netloc = _canonical_host
+if _parsed_base_url.port:
+    _canonical_netloc += f":{_parsed_base_url.port}"
+# Only enforce in environments with a real public hostname, so dev
+# (127.0.0.1/localhost) and tests (testserver) are never redirected.
+_enforce_canonical_host = bool(_canonical_host) and not (
+    _canonical_host in {"testserver", "localhost", "127.0.0.1", "::1"}
+    or _canonical_host.startswith("127.")
+)
+
+
+def _is_exempt_host(host: str) -> bool:
+    return not host or host in {"testserver", "localhost", "127.0.0.1", "::1"} or host.startswith("127.")
+
+
+class CanonicalHostMiddleware:
+    """Redirect any non-canonical host to BASE_URL's host before sessions.
+
+    The session cookie is host-only, so starting OAuth on www breaks stuff.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and _enforce_canonical_host:
+            headers = dict(scope.get("headers", []))
+            host = headers.get(b"host", b"").decode("latin-1").split(":")[0].lower()
+            if host and host != _canonical_host and not _is_exempt_host(host):
+                raw_path = scope.get("raw_path")
+                path = raw_path.decode("latin-1") if raw_path else scope.get("path", "/")
+                query = (scope.get("query_string") or b"").decode("latin-1")
+                destination = f"{_canonical_scheme}://{_canonical_netloc}{path}"
+                if query:
+                    destination += f"?{query}"
+                status_code = 301 if scope.get("method", "GET") in ("GET", "HEAD") else 308
+                response = RedirectResponse(destination, status_code=status_code)
+                await response(scope, receive, send)
+                return
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(CanonicalHostMiddleware)
 
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
