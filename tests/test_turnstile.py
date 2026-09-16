@@ -4,7 +4,6 @@ import httpx
 
 from app import turnstile
 
-
 class FakeResponse:
     def __init__(self, result):
         self.result = result
@@ -14,7 +13,6 @@ class FakeResponse:
 
     def json(self):
         return self.result
-
 
 def configure_turnstile(monkeypatch):
     monkeypatch.setattr(
@@ -26,7 +24,6 @@ def configure_turnstile(monkeypatch):
             base_url="https://runs.example.com",
         ),
     )
-
 
 def test_turnstile_accepts_matching_action_and_hostname(monkeypatch):
     configure_turnstile(monkeypatch)
@@ -42,7 +39,6 @@ def test_turnstile_accepts_matching_action_and_hostname(monkeypatch):
         ),
     )
     assert turnstile.verify_turnstile("valid-token", "submit_run")
-
 
 def test_turnstile_rejects_wrong_context_or_network_failure(monkeypatch):
     configure_turnstile(monkeypatch)

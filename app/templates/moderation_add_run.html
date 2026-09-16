@@ -1,53 +1,57 @@
 {% extends "base.html" %}
-{% block title %}Add run manually · {{ app_name }}{% endblock %}
+{% block title %}Add run manually &bullet; {{ app_name }}{% endblock %}
 {% block content %}
-<div class="title-row">
-  <h1>Add run manually</h1>
-  <a href="/moderation">Back to moderation</a>
-</div>
+	<div class="title-row">
+		<h1>Add run manually</h1>
+		<a href="/moderation">Back to moderation</a>
+	</div>
 
-{% if errors %}
-<div class="notice error">
-  <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
-</div>
-{% endif %}
+	{% if errors %}
+		<div class="notice error">
+			<ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+		</div>
+	{% endif %}
 
-<form class="form-panel" method="post" action="/moderation/runs/add">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-  <label>
-    Discord user ID
-    <input name="discord_id" value="{{ values.discord_id or '' }}" inputmode="numeric" maxlength="25" autocomplete="off" required>
-  </label>
-  <label>
-    Temporary display name
-    <input name="temporary_display_name" value="{{ values.temporary_display_name or '' }}" maxlength="80" autocomplete="off" required>
-    <span class="field-help">Only used until this Discord account signs in.</span>
-  </label>
-  <label>
-    Category
-    <select name="category_id" required>
-      {% for category in categories %}
-        {% if loop.first or category.build_slug != categories[loop.index0 - 1].build_slug %}
-          {% if not loop.first %}</optgroup>{% endif %}
-          <optgroup label="{{ category.build_name }}">
-        {% endif %}
-        <option value="{{ category.id }}" {% if values.category_id == category.id %}selected{% endif %}>{{ category.display_name }}</option>
-        {% if loop.last %}</optgroup>{% endif %}
-      {% endfor %}
-    </select>
-  </label>
-  <label>
-    Time
-    <input name="run_time" value="{{ values.run_time or '' }}" placeholder="1:02:34.567" autocomplete="off" required>
-  </label>
-  <label>
-    Video URL
-    <input type="url" name="video_url" value="{{ values.video_url or '' }}" placeholder="https://youtu.be/..." maxlength="500" required>
-  </label>
-  <label>
-    Notes <span class="muted">(optional)</span>
-    <textarea name="notes" rows="4" maxlength="2000">{{ values.notes or '' }}</textarea>
-  </label>
-  <button type="submit">Add approved run</button>
-</form>
+	<form class="form-panel" method="post" action="/moderation/runs/add">
+		<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+		<label>
+			Discord user ID
+			<input name="discord_id" value="{{ values.discord_id or '' }}" inputmode="numeric" maxlength="25" autocomplete="off" required>
+		</label>
+		<label>
+			Temporary display name
+			<input name="temporary_display_name" value="{{ values.temporary_display_name or '' }}" maxlength="80" autocomplete="off" required>
+			<span class="field-help">Only used until this Discord account signs in.</span>
+		</label>
+		<label>
+			Category
+			<select name="category_id" required>
+				{% for category in categories %}
+					{% if loop.first or category.build_slug != categories[loop.index0 - 1].build_slug %}
+						{% if not loop.first %}</optgroup>{% endif %}
+						<optgroup label="{{ category.build_name }}">
+					{% endif %}
+					<option value="{{ category.id }}" {% if values.category_id == category.id %}selected{% endif %}>{{ category.name }}</option>
+					{% if loop.last %}</optgroup>{% endif %}
+				{% endfor %}
+			</select>
+		</label>
+		<label>
+			Time
+			<input name="run_time" value="{{ values.run_time or '' }}" placeholder="1:02:34.567" autocomplete="off" required>
+		</label>
+		<label>
+			Video URL
+			<input type="url" name="video_url" value="{{ values.video_url or '' }}" placeholder="https://youtu.be/..." maxlength="500" required>
+		</label>
+		<label>
+			Splits URL <span class="muted">(optional)</span>
+			<input type="url" name="splits_url" value="{{ values.splits_url or '' }}" placeholder="https://therun.gg/..." maxlength="500">
+		</label>
+		<label>
+			Notes <span class="muted">(optional)</span>
+			<textarea name="notes" rows="4" maxlength="2000">{{ values.notes or '' }}</textarea>
+		</label>
+		<button type="submit">Add approved run</button>
+	</form>
 {% endblock %}

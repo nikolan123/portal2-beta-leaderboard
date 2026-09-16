@@ -16,10 +16,8 @@ DISCORD_AUTHORIZE_URL = "https://discord.com/oauth2/authorize"
 DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token"
 DISCORD_ME_URL = "https://discord.com/api/v10/users/@me"
 
-
 def oauth_ready() -> bool:
-    return bool(settings.discord_client_id and settings.discord_client_secret and settings.owner_discord_id)
-
+    return bool(settings.discord_client_id and settings.discord_client_secret and settings.owner_discord_ids)
 
 def build_discord_authorize_url(request: Request) -> str:
     if not settings.discord_client_id or not settings.discord_client_secret:
@@ -34,14 +32,13 @@ def build_discord_authorize_url(request: Request) -> str:
         "state": state,
         "redirect_uri": settings.discord_redirect_uri,
     }
+    
     return f"{DISCORD_AUTHORIZE_URL}?{urlencode(params)}"
-
 
 def verify_oauth_state(request: Request, returned_state: str | None) -> None:
     expected = request.session.pop("oauth_state", None)
     if not expected or not returned_state or not hmac.compare_digest(expected, returned_state):
         raise HTTPException(status_code=400, detail="Invalid OAuth state. Please try signing in again.")
-
 
 async def exchange_code_for_user(code: str) -> dict:
     async with httpx.AsyncClient(timeout=10.0) as client:
@@ -57,6 +54,7 @@ async def exchange_code_for_user(code: str) -> dict:
         )
         if token_response.is_error:
             raise HTTPException(status_code=502, detail="Discord rejected the OAuth token exchange.")
+        
         token = token_response.json()
         access_token = token.get("access_token")
         if not access_token:
@@ -68,8 +66,8 @@ async def exchange_code_for_user(code: str) -> dict:
         )
         if user_response.is_error:
             raise HTTPException(status_code=502, detail="Could not fetch your Discord profile.")
+        
         return user_response.json()
-
 
 def upsert_discord_user(db: Session, profile: dict) -> User:
     discord_id = str(profile.get("id", "")).strip()
@@ -86,6 +84,8 @@ def upsert_discord_user(db: Session, profile: dict) -> User:
     user.global_name = profile.get("global_name")
     user.avatar_hash = profile.get("avatar")
     user.last_login_at = utcnow()
+    
     db.commit()
     db.refresh(user)
+    
     return user

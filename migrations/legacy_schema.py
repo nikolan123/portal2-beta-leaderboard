@@ -1,14 +1,21 @@
+# Old db scheme, don't remove
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, text
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .database import Base
+from sqlalchemy.orm import DeclarativeBase
+
+
+class Base(DeclarativeBase):
+    pass
+
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
 
 class User(Base):
     __tablename__ = "users"
@@ -37,6 +44,7 @@ class User(Base):
     def display_name(self) -> str:
         return self.global_name or self.username or self.discord_id
 
+
 class UserProfile(Base):
     __tablename__ = "user_profiles"
 
@@ -50,32 +58,27 @@ class UserProfile(Base):
 
     user: Mapped[User] = relationship(back_populates="profile")
 
+
 class Category(Base):
     __tablename__ = "categories"
-    __table_args__ = (UniqueConstraint("build_slug", "slug", name="uq_categories_build_slug_slug"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    slug: Mapped[str] = mapped_column(String(80), index=True)
-    legacy_slug: Mapped[str] = mapped_column(String(80), default="", server_default=text("''"), index=True)
-    name: Mapped[str] = mapped_column(String(120))
+    slug: Mapped[str] = mapped_column(String(80), unique=True, index=True)
+    name: Mapped[str] = mapped_column(String(120), unique=True)
+    short_name: Mapped[str] = mapped_column(String(120), default="")
     description: Mapped[str] = mapped_column(String(240), default="")
     display_order: Mapped[int] = mapped_column(Integer, default=0)
     build_slug: Mapped[str] = mapped_column(String(80), default="", index=True)
     build_name: Mapped[str] = mapped_column(String(120), default="")
-    build_version: Mapped[str] = mapped_column(String(80), default="", server_default=text("''"))
     build_order: Mapped[int] = mapped_column(Integer, default=0)
     rules_file: Mapped[str] = mapped_column(String(240), default="")
 
     runs: Mapped[list["Run"]] = relationship(back_populates="category")
 
     @property
-    def effective_legacy_slug(self) -> str:
-        """Old `/category/{slug}` value. Falls back to `{build_slug}_{slug}`."""
-        if self.legacy_slug:
-            return self.legacy_slug
-        if self.build_slug:
-            return f"{self.build_slug}_{self.slug}"
-        return self.slug
+    def display_name(self) -> str:
+        return self.short_name or self.name
+
 
 class Run(Base):
     __tablename__ = "runs"
@@ -89,7 +92,6 @@ class Run(Base):
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"), index=True)
     time_ms: Mapped[int] = mapped_column(Integer, index=True)
     video_url: Mapped[str] = mapped_column(String(500))
-    splits_url: Mapped[str] = mapped_column(String(500), default="", server_default=text("''"))
     notes: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
@@ -100,6 +102,7 @@ class Run(Base):
     runner: Mapped[User] = relationship(back_populates="runs", foreign_keys=[user_id])
     category: Mapped[Category] = relationship(back_populates="runs")
     reviewed_by: Mapped[User | None] = relationship(foreign_keys=[reviewed_by_user_id])
+
 
 class AuditLog(Base):
     __tablename__ = "audit_logs"

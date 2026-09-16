@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Error {{ status_code }} · {{ app_name }}{% endblock %}
+{% block title %}Error {{ status_code }} &bullet; {{ app_name }}{% endblock %}
 {% block content %}
-<div class="title-row"><h1>{{ detail }}</h1></div>
-<p><a href="/">Back</a></p>
+	<div class="title-row"><h1>{{ detail }}</h1></div>
+	<p><a href="/">Back</a></p>
 {% endblock %}

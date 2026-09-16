@@ -8,10 +8,8 @@ from .config import settings
 
 SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 
-
 def turnstile_enabled() -> bool:
     return bool(settings.turnstile_site_key and settings.turnstile_secret_key)
-
 
 def verify_turnstile(token: str, expected_action: str) -> bool:
     """Validate a single-use Turnstile token and its intended form action."""

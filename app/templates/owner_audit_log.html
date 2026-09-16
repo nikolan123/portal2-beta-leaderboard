@@ -1,36 +1,36 @@
 {% extends "base.html" %}
-{% block title %}Audit log · {{ app_name }}{% endblock %}
+{% block title %}Audit log &bullet; {{ app_name }}{% endblock %}
 {% block content %}
-<div class="title-row">
-  <h1>Audit log</h1>
-  <form method="post" action="/owner/database/download">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <button type="submit">Download database snapshot</button>
-  </form>
-</div>
-{% if entries %}
-<div class="table-wrap">
-  <table class="audit-table">
-    <thead>
-      <tr><th>Date</th><th>Action</th><th>Run</th><th>Actor</th><th>Runner</th><th>Category</th><th>Time</th><th>Details</th></tr>
-    </thead>
-    <tbody>
-    {% for entry in entries %}
-      <tr>
-        <td class="audit-date">{{ entry.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</td>
-        <td><span class="audit-action {{ entry.action }}">{{ entry.action.replace('_', ' ')|title }}</span></td>
-        <td class="mono">{% if entry.action == 'deleted' %}#{{ entry.run_id }}{% else %}<a href="/runs/{{ entry.run_id }}">#{{ entry.run_id }}</a>{% endif %}</td>
-        <td>{{ entry.actor_name }}<br><span class="muted mono">{{ entry.actor_discord_id }}</span></td>
-        <td>{{ entry.runner_name }}<br><span class="muted mono">{{ entry.runner_discord_id }}</span></td>
-        <td>{{ entry.category_name }}</td>
-        <td class="time">{{ entry.time_ms|runtime }}</td>
-        <td>{{ entry.details or '—' }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% else %}
-<p class="empty">No audit events yet.</p>
-{% endif %}
+	<div class="title-row">
+		<h1>Audit log</h1>
+		<form method="post" action="/owner/database/download">
+			<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+			<button type="submit">Download database snapshot</button>
+		</form>
+	</div>
+	{% if entries %}
+		<div class="table-wrap">
+			<table class="audit-table">
+				<thead>
+					<tr><th>Date</th><th>Action</th><th>Run</th><th>Actor</th><th>Runner</th><th>Category</th><th>Time</th><th>Details</th></tr>
+				</thead>
+				<tbody>
+					{% for entry in entries %}
+						<tr>
+							<td class="audit-date">{{ entry.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</td>
+							<td><span class="audit-action {{ entry.action }}">{{ entry.action.replace('_', ' ')|title }}</span></td>
+							<td class="mono">{% if entry.action == 'deleted' %}#{{ entry.run_id }}{% else %}<a href="/runs/{{ entry.run_id }}">#{{ entry.run_id }}</a>{% endif %}</td>
+							<td>{{ entry.actor_name }}<br><span class="muted mono">{{ entry.actor_discord_id }}</span></td>
+							<td>{{ entry.runner_name }}<br><span class="muted mono">{{ entry.runner_discord_id }}</span></td>
+							<td>{{ entry.category_name }}</td>
+							<td class="time">{{ entry.time_ms|runtime }}</td>
+							<td>{{ entry.details or '—' }}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	{% else %}
+		<p class="empty">No audit events yet.</p>
+	{% endif %}
 {% endblock %}

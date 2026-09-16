@@ -1,43 +1,43 @@
 {% extends "base.html" %}
-{% block title %}Moderation · {{ app_name }}{% endblock %}
+{% block title %}Moderation &bullet; {{ app_name }}{% endblock %}
 {% block content %}
-<div class="title-row">
-  <h1>Moderation</h1>
-  <a href="/moderation/runs/add">Add run manually</a>
-</div>
-{% if pending_runs %}
-<div class="review-list">
-{% for run in pending_runs %}
-<section class="review-item">
-  <div class="review-main">
-    <div>
-      <h2>{{ run.time_ms|runtime }}</h2>
-      <p><a href="/runs/{{ run.id }}">#{{ run.id }}</a> · {{ run.category.build_name }} · {{ run.category.display_name }} · <a href="/users/{{ run.runner.discord_id }}">{{ run.runner.display_name }}</a></p>
-    </div>
-    <a href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer">Video</a>
-  </div>
-  {% if run.notes %}<p class="run-notes">{{ run.notes }}</p>{% endif %}
-  <div class="review-actions">
-    <a href="/moderation/runs/{{ run.id }}/edit">Edit</a>
-    <form method="post" action="/moderation/{{ run.id }}/approve">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <button type="submit">Approve</button>
-    </form>
-    <form class="reject-form" method="post" action="/moderation/{{ run.id }}/reject">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <input name="rejection_reason" maxlength="500" placeholder="Reason (optional)">
-      <button class="danger" type="submit">Reject</button>
-    </form>
-    <form method="post" action="/runs/{{ run.id }}/delete" onsubmit="return confirm('Delete this run permanently?');">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <input type="hidden" name="return_to" value="moderation">
-      <button class="danger" type="submit">Delete</button>
-    </form>
-  </div>
-</section>
-{% endfor %}
-</div>
-{% else %}
-<p class="empty">Nothing to review.</p>
-{% endif %}
+	<div class="title-row">
+		<h1>Moderation</h1>
+		<a href="/moderation/runs/add">Add run manually</a>
+	</div>
+	{% if pending_runs %}
+		<div class="review-list">
+		{% for run in pending_runs %}
+			<section class="review-item">
+				<div class="review-main">
+					<div>
+						<h2>{{ run.time_ms|runtime }}</h2>
+						<p><a href="/runs/{{ run.id }}">#{{ run.id }}</a> &bullet; {{ run.category.build_name }} &bullet; {{ run.category.name }} &bullet; <a href="/users/{{ run.runner.discord_id }}">{{ run.runner.display_name }}</a></p>
+					</div>
+					<a href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer">Video</a>
+				</div>
+				{% if run.notes %}<p class="run-notes">{{ run.notes }}</p>{% endif %}
+				<div class="review-actions">
+					<a href="/moderation/runs/{{ run.id }}/edit">Edit</a>
+					<form method="post" action="/moderation/{{ run.id }}/approve">
+						<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+						<button type="submit">Approve</button>
+					</form>
+					<form class="reject-form" method="post" action="/moderation/{{ run.id }}/reject">
+						<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+						<input name="rejection_reason" maxlength="500" placeholder="Reason (optional)" aria-label="Rejection reason">
+						<button class="danger" type="submit">Reject</button>
+					</form>
+					<form method="post" action="/runs/{{ run.id }}/delete" onsubmit="return confirm('Delete this run permanently?');">
+						<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+						<input type="hidden" name="return_to" value="moderation">
+						<button class="danger" type="submit">Delete</button>
+					</form>
+				</div>
+			</section>
+		{% endfor %}
+		</div>
+	{% else %}
+		<p class="empty">Nothing to review.</p>
+	{% endif %}
 {% endblock %}

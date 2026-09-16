@@ -1,36 +1,135 @@
 {% extends "base.html" %}
-{% block title %}{{ category.display_name }} · {{ category.build_name }} · {{ app_name }}{% endblock %}
+{% block title %}{{ category.name }} &bullet; {{ category.build_name }} &bullet; {{ app_name }}{% endblock %}
 {% block social_meta %}<meta property="og:title" content="{{ self.title()|striptags|forceescape }}">{% endblock %}
 {% block content %}
-<div class="title-row">
-  <div><p class="eyebrow">{{ category.build_name }}</p><h1>{{ category.display_name }}</h1></div>
-  <div class="category-actions">
-    <form method="get" action="/category/{{ category.slug }}">
-      <button class="obsolete-toggle" type="submit" name="show_obsolete" value="{{ 'false' if show_obsolete else 'true' }}" aria-pressed="{{ 'true' if show_obsolete else 'false' }}" aria-label="Show obsoleted runs" title="{{ 'Hide' if show_obsolete else 'Show' }} obsoleted runs">
-        <span class="history-icon" aria-hidden="true"></span>
-      </button>
-    </form>
-    <a href="/category/{{ category.slug }}/rules">Category rules</a>
-  </div>
-</div>
-{% if runs %}
-<div class="table-wrap">
-  <table class="leaderboard-table">
-    <thead><tr><th>Place</th><th>Runner</th><th>Time</th><th>Submitted</th><th>Proof</th></tr></thead>
-    <tbody>
-    {% for run in runs %}
-      <tr>
-        <td>{% if run.id in places %}{{ places[run.id]|ordinal }}{% else %}<span class="history-icon muted" role="img" aria-label="Obsoleted run" title="Obsoleted run"></span>{% endif %}</td>
-        <td><a href="/users/{{ run.runner.discord_id }}">{{ run.runner.display_name }}</a></td>
-        <td class="time"><a href="/runs/{{ run.id }}">{{ run.time_ms|runtime }}</a></td>
-        <td>{{ run.submitted_at.strftime('%Y-%m-%d') }}</td>
-        <td><a href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer">Video</a></td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% else %}
-  <p class="empty">No runs yet.</p>
-{% endif %}
+	<div class="title-row">
+		<div><p class="eyebrow">{{ category.build_name }} (v{{ category.build_version }})</p><h1>{{ category.name }}</h1></div>
+		<div class="category-actions">
+			<form method="get" action="/{{ category.build_slug }}/{{ category.slug }}">
+				<button class="obsolete-toggle" type="submit" name="show_obsolete"
+					value="{{ 'false' if show_obsolete else 'true' }}" aria-pressed="{{ 'true' if show_obsolete else 'false' }}"
+					aria-label="Show obsoleted runs" title="{{ 'Hide' if show_obsolete else 'Show' }} obsoleted runs"
+				>
+					<span class="history-icon" aria-hidden="true"></span>
+				</button>
+			</form>
+			<a href="/{{ category.build_slug }}/{{ category.slug }}/rules">Category rules</a>
+		</div>
+	</div>
+	{% if build_categories|length > 1 %}
+		<nav class="switcher" aria-label="Categories in {{ category.build_name }}">
+			{% for sibling in build_categories %}
+				<a href="/{{ sibling.build_slug }}/{{ sibling.slug }}"{% if sibling.id == category.id %} aria-current="page"{% endif %}>{{ sibling.name }}</a>
+			{% endfor %}
+		</nav>
+	{% endif %}
+	<div class="build-layout">
+		<div>
+			{% if runs %}
+				<div class="table-wrap">
+					<table class="leaderboard-table">
+						<thead><tr><th>Place</th><th>Runner</th><th>Time</th><th>Date</th><th>Proof</th></tr></thead>
+						<tbody>
+							{% for run in runs %}
+								<tr data-href="/runs/{{ run.id }}">
+									<td>
+										{% if run.id in places %}
+											{{ places[run.id]|ordinal }}
+										{% else %}
+											<span class="history-icon muted" role="img" aria-label="Obsoleted run" title="Obsoleted run"></span>
+										{% endif %}
+									</td>
+								<td>
+									<div class="runner-cell">
+										<a href="/users/{{ run.runner.discord_id }}">{{ run.runner.display_name }}</a>
+										{% if run.splits_url or not run.video_url or run.notes %}
+											<span class="flags">
+												{% if run.splits_url %}
+													<a class="icon-link" href="{{ run.splits_url }}" target="_blank" rel="noopener noreferrer" data-tip="View splits for this run" aria-label="View splits for this run">
+														<span class="icon icon-splits" aria-hidden="true"></span>
+													</a>
+												{% endif %}
+												{% if not run.video_url %}
+													<span class="icon-warn" role="img" aria-label="No video proof was provided" data-tip="No video proof was provided">
+														<span class="icon icon-no-video" aria-hidden="true"></span>
+													</span>
+												{% endif %}
+												{% if run.notes %}
+													<span class="muted" role="img" aria-label="This run has notes" data-tip="{{ run.notes }}">
+														<span class="icon icon-notes" aria-hidden="true"></span>
+													</span>
+												{% endif %}
+											</span>
+										{% endif %}
+									</div>
+								</td>
+								<td class="time"><a href="/runs/{{ run.id }}">{{ run.time_ms|runtime }}</a></td>
+								<td class="date"><span data-tip="{{ run.submitted_at.strftime('%Y-%m-%d %H:%M UTC') }}">{{ run.submitted_at|timeago }}</span></td>
+									<td>
+										{% if run.video_url %}
+											<a class="icon-link" href="{{ run.video_url }}" target="_blank" rel="noopener noreferrer" data-tip="Watch proof video" aria-label="Watch proof video">
+												<span class="icon icon-video" aria-hidden="true"></span>
+											</a>
+										{% else %}
+											<span class="muted">—</span>
+										{% endif %}
+									</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			{% else %}
+				<p class="empty">No runs yet.</p>
+			{% endif %}
+		</div>
+		<aside class="build-side">
+			<section aria-label="Latest runs">
+				<h2>Latest runs</h2>
+				{% if latest_runs %}
+					<ul class="feed">
+						{% for run in latest_runs %}
+							<li>
+								<a class="time" href="/runs/{{ run.id }}">{{ run.time_ms|runtime }}</a>
+								by <a href="/users/{{ run.runner.discord_id }}">{{ run.runner.display_name }}</a>
+								<div class="feed-meta">
+									<a href="/{{ run.category.build_slug }}/{{ run.category.slug }}">{{ run.category.name }}</a> &bullet; <span data-tip="{{ run.submitted_at.strftime('%Y-%m-%d %H:%M UTC') }}">{{ run.submitted_at|timeago }}</span>
+								</div>
+							</li>
+						{% endfor %}
+					</ul>
+				{% else %}
+					<p class="empty">No runs yet.</p>
+				{% endif %}
+			</section>
+			<section aria-label="Moderators">
+				<h2>Moderators</h2>
+				{% if moderators %}
+					<ul class="side-mods">
+						{% for moderator in moderators %}
+							<li><a href="/users/{{ moderator.user.discord_id }}"><img src="{{ moderator.avatar_url }}" alt="" width="24" height="24" loading="lazy">{{ moderator.user.display_name }}</a></li>
+						{% endfor %}
+					</ul>
+				{% else %}
+					<p class="empty">No moderators yet.</p>
+				{% endif %}
+			</section>
+		</aside>
+	</div>
+	<script>
+		document.querySelectorAll('tr[data-href]').forEach(function (row) {
+			row.tabIndex = 0;
+			row.style.cursor = 'pointer';
+			row.addEventListener('click', function (event) {
+				if (event.target.closest('a, button')) return;
+				window.location.href = row.dataset.href;
+			});
+			row.addEventListener('keydown', function (event) {
+				if ((event.key === 'Enter' || event.key === ' ') && event.target === row) {
+					event.preventDefault();
+					window.location.href = row.dataset.href;
+				}
+			});
+		});
+	</script>
 {% endblock %}

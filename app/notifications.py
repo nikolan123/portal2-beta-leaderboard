@@ -17,10 +17,10 @@ def notify_moderation(run_id: int, runner_name: str, category_name: str, time_ms
     except Exception:
         logger.warning("Discord moderation notification failed for run %s", run_id)
 
-
 def _send_moderation_notification(run_id: int, runner_name: str, category_name: str, time_ms: int, edited: bool) -> None:
     if not settings.discord_moderation_webhook_url:
         return
+    
     payload = {
         "content": MODERATION_MESSAGE,
         "allowed_mentions": {
@@ -39,5 +39,6 @@ def _send_moderation_notification(run_id: int, runner_name: str, category_name: 
             ],
         }],
     }
+    
     response = httpx.post(settings.discord_moderation_webhook_url, json=payload, timeout=5)
     response.raise_for_status()

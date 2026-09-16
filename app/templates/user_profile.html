@@ -1,44 +1,44 @@
 {% extends "base.html" %}
-{% block title %}{{ profile_user.display_name }} · {{ app_name }}{% endblock %}
+{% block title %}{{ profile_user.display_name }} &bullet; {{ app_name }}{% endblock %}
 {% block page_class %}profile-color-{{ profile_color }}{% endblock %}
 {% block social_meta %}
-<meta property="og:title" content="{{ self.title()|striptags|forceescape }}">
-<meta property="og:image" content="{{ profile_avatar_url }}">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="{{ self.title()|striptags|forceescape }}">
-<meta name="twitter:image" content="{{ profile_avatar_url }}">
+	<meta property="og:title" content="{{ self.title()|striptags|forceescape }}">
+	<meta property="og:image" content="{{ profile_avatar_url }}">
+	<meta name="twitter:card" content="summary">
+	<meta name="twitter:title" content="{{ self.title()|striptags|forceescape }}">
+	<meta name="twitter:image" content="{{ profile_avatar_url }}">
 {% endblock %}
 {% block content %}
-<section class="profile-header">
-  <img class="profile-avatar" src="{{ profile_avatar_url }}" alt="{{ profile_user.display_name }}'s Discord avatar" width="64" height="64">
-  <div>
-    <h1>{{ profile_user.display_name }}</h1>
-    {% if profile_is_moderator %}<span class="moderator-badge">Moderator</span>{% endif %}
-  </div>
-  {% if current_user and current_user.id == profile_user.id %}<a class="profile-edit-link" href="/me/profile">Edit profile</a>{% endif %}
-</section>
+	<section class="profile-header">
+		<img class="profile-avatar" src="{{ profile_avatar_url }}" alt="{{ profile_user.display_name }}'s Discord avatar" width="64" height="64">
+		<div>
+			<h1>{{ profile_user.display_name }}</h1>
+			{% if profile_is_moderator %}<span class="moderator-badge">Moderator</span>{% endif %}
+		</div>
+		{% if current_user and current_user.id == profile_user.id %}<a class="profile-edit-link" href="/me/profile">Edit profile</a>{% endif %}
+	</section>
 
-<h2>About me</h2>
-{% if profile and profile.bio %}<div class="profile-bio">{{ profile.bio|bio_markdown }}</div>{% else %}<p class="muted">No bio yet.</p>{% endif %}
+	<h2>About me</h2>
+	{% if profile and profile.bio %}<div class="profile-bio">{{ profile.bio|bio_markdown }}</div>{% else %}<p class="muted">No bio yet.</p>{% endif %}
 
-<div class="profile-runs-title"><h2>Runs</h2></div>
-{% if runs %}
-<div class="table-wrap">
-  <table>
-    <thead><tr><th>Category</th><th>Time</th>{% if own_profile %}<th>Status</th>{% endif %}<th>Submitted</th></tr></thead>
-    <tbody>
-    {% for run in runs %}
-      <tr>
-        <td><a href="/category/{{ run.category.slug }}">{{ run.category.build_name }} · {{ run.category.display_name }}</a></td>
-        <td class="time"><a href="/runs/{{ run.id }}">{{ run.time_ms|runtime }}</a></td>
-        {% if own_profile %}<td><span class="status {{ run.status }}">{{ run.status }}</span></td>{% endif %}
-        <td>{{ run.submitted_at.strftime('%Y-%m-%d') }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% else %}
-<p class="empty">{% if own_profile %}No submissions.{% else %}No approved runs.{% endif %}</p>
-{% endif %}
+	<div class="profile-runs-title"><h2>Runs</h2></div>
+	{% if runs %}
+		<div class="table-wrap">
+			<table>
+				<thead><tr><th>Category</th><th>Time</th>{% if own_profile %}<th>Status</th>{% endif %}<th>Submitted</th></tr></thead>
+				<tbody>
+					{% for run in runs %}
+						<tr>
+							<td><a href="/{{ run.category.build_slug }}/{{ run.category.slug }}">{{ run.category.build_name }} &bullet; {{ run.category.name }}</a></td>
+							<td class="time"><a href="/runs/{{ run.id }}">{{ run.time_ms|runtime }}</a></td>
+							{% if own_profile %}<td><span class="status {{ run.status }}">{{ run.status }}</span></td>{% endif %}
+							<td>{{ run.submitted_at.strftime('%Y-%m-%d') }}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	{% else %}
+		<p class="empty">{% if own_profile %}No submissions.{% else %}No approved runs.{% endif %}</p>
+	{% endif %}
 {% endblock %}

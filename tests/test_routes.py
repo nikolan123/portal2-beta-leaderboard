@@ -14,7 +14,6 @@ import app.main as main_module
 from app.main import app
 from app.models import AuditLog, Category, Run, User, UserProfile, utcnow
 
-
 def test_public_pages_render_with_current_starlette():
     with TestClient(app) as client:
         response = client.get("/")
@@ -25,7 +24,6 @@ def test_public_pages_render_with_current_starlette():
         assert f'styles.css?v={main_module.CSS_VERSION}' in response.text
         css_response = client.get(f"/static/styles.css?v={main_module.CSS_VERSION}")
         assert css_response.status_code == 200
-
 
 def test_about_page_lists_moderators_and_owner_only():
     with TestClient(app) as client:
@@ -50,7 +48,6 @@ def test_about_page_lists_moderators_and_owner_only():
                 db.delete(user)
             db.commit()
 
-
 def test_category_rules_are_rendered_from_markdown(monkeypatch, tmp_path):
     rules_dir = tmp_path / "rules"
     rules_dir.mkdir()
@@ -63,8 +60,7 @@ def test_category_rules_are_rendered_from_markdown(monkeypatch, tmp_path):
             db.add(
                 Category(
                     slug="route-test-category",
-                    name="Route Test Build - Route Test Category",
-                    short_name="Route Test Category",
+                    name="Route Test Category",
                     build_slug="route-test-build",
                     build_name="Route Test Build",
                     rules_file="rules/category.md",
@@ -72,24 +68,35 @@ def test_category_rules_are_rendered_from_markdown(monkeypatch, tmp_path):
             )
             db.commit()
 
-        response = client.get("/category/route-test-category/rules")
+        response = client.get("/route-test-build/route-test-category/rules")
         assert response.status_code == 200
         assert "<p>TBD</p>" in response.text
         assert response.text.count("<h1") == 1
 
-
 def test_missing_category_uses_html_error_template():
     with TestClient(app) as client:
-        response = client.get("/category/not-a-category")
+        response = client.get("/no-such-build/no-such-category")
         assert response.status_code == 404
         assert "Category not found" in response.text
-
+        legacy_response = client.get("/category/not-a-category")
+        assert legacy_response.status_code == 404
+        assert "Category not found" in legacy_response.text
 
 def test_category_can_show_obsoleted_runs_without_changing_places():
     with TestClient(app) as client:
         with SessionLocal() as db:
-            category = Category(slug="obsolete-test", name="Obsolete Test")
-            other_category = Category(slug="obsolete-other", name="Obsolete Other")
+            category = Category(
+                slug="obsolete-test",
+                name="Obsolete Test",
+                build_slug="obsolete-build",
+                build_name="Obsolete Build",
+            )
+            other_category = Category(
+                slug="obsolete-other",
+                name="Obsolete Other",
+                build_slug="obsolete-build",
+                build_name="Obsolete Build",
+            )
             first = User(discord_id="obsolete-first", username="First")
             second = User(discord_id="obsolete-second", username="Second")
             db.add_all([category, other_category, first, second])
@@ -116,34 +123,115 @@ def test_category_can_show_obsoleted_runs_without_changing_places():
             ("?show_obsolete=true", ids[:4], True),
             ("?show_obsolete=false", [ids[0], ids[3]], False),
         ]:
-            response = client.get(f"/category/obsolete-test{query}")
+            response = client.get(f"/obsolete-build/obsolete-test{query}")
             assert response.status_code == 200
-            assert [int(id_) for id_ in re.findall(r'href="/runs/(\d+)"', response.text)] == expected
+            tbody = re.search(r"<tbody>(.*?)</tbody>", response.text, re.S).group(1)
+            assert [int(id_) for id_ in re.findall(r'<a href="/runs/(\d+)"', tbody)] == expected
             assert ('aria-pressed="true"' in response.text) == checked
-            rows = re.findall(r"<tr>(.*?)</tr>", response.text, re.S)
+            rows = re.findall(r"<tr[^>]*>(.*?)</tr>", response.text, re.S)
             for run_id, place in [(ids[0], "1st"), (ids[3], "2nd")]:
                 row = next(row for row in rows if f'href="/runs/{run_id}"' in row)
-                assert f"<td>{place}</td>" in row
+                assert re.search(rf"<td>\s*{place}\s*</td>", row)
             assert response.text.count('aria-label="Obsoleted run"') == (2 if checked else 0)
-
 
 def test_empty_category_keeps_obsoleted_runs_option():
     with TestClient(app) as client:
         with SessionLocal() as db:
-            db.add(Category(slug="obsolete-empty", name="Obsolete Empty"))
+            db.add(
+                Category(
+                    slug="obsolete-empty",
+                    name="Obsolete Empty",
+                    build_slug="obsolete-build",
+                    build_name="Obsolete Build",
+                )
+            )
             db.commit()
-        response = client.get("/category/obsolete-empty?show_obsolete=true")
+        response = client.get("/obsolete-build/obsolete-empty?show_obsolete=true")
         assert response.status_code == 200
         assert "No runs yet." in response.text
         assert 'aria-pressed="true"' in response.text
 
+def test_legacy_slug_defaults_to_build_and_category_slug():
+    assert (
+        Category(slug="nme", build_slug="july09", legacy_slug="").effective_legacy_slug
+        == "july09_nme"
+    )
+    assert (
+        Category(
+            slug="nme",
+            build_slug="july09",
+            legacy_slug="2009-no-major-exploits",
+        ).effective_legacy_slug
+        == "2009-no-major-exploits"
+    )
+    assert Category(slug="solo", build_slug="").effective_legacy_slug == "solo"
+
+def test_legacy_category_urls_redirect_to_new_urls():
+    with TestClient(app) as client:
+        with SessionLocal() as db:
+            db.add_all(
+                [
+                    Category(
+                        slug="legacy-cat",
+                        name="Legacy Cat",
+                        build_slug="legacy-build",
+                        build_name="Legacy Test Build",
+                        legacy_slug="old-legacy-cat",
+                        rules_file="rules/unused.md",
+                    ),
+                    Category(
+                        slug="fallback-cat",
+                        name="Fallback Cat",
+                        build_slug="legacy-build",
+                        build_name="Legacy Test Build",
+                        legacy_slug="",
+                        rules_file="rules/unused.md",
+                    ),
+                ]
+            )
+            db.commit()
+
+        response = client.get("/category/old-legacy-cat", follow_redirects=False)
+        assert response.status_code == 301
+        assert response.headers["location"] == "/legacy-build/legacy-cat"
+
+        query_response = client.get(
+            "/category/old-legacy-cat?show_obsolete=true", follow_redirects=False
+        )
+        assert query_response.status_code == 301
+        assert (
+            query_response.headers["location"]
+            == "/legacy-build/legacy-cat?show_obsolete=true"
+        )
+
+        rules_response = client.get(
+            "/category/old-legacy-cat/rules", follow_redirects=False
+        )
+        assert rules_response.status_code == 301
+        assert rules_response.headers["location"] == "/legacy-build/legacy-cat/rules"
+
+        fallback_response = client.get(
+            "/category/legacy-build_fallback-cat", follow_redirects=False
+        )
+        assert fallback_response.status_code == 301
+        assert fallback_response.headers["location"] == "/legacy-build/fallback-cat"
+
+        followed = client.get("/category/old-legacy-cat")
+        assert followed.status_code == 200
+        assert "Legacy Cat" in followed.text
+
+        with SessionLocal() as db:
+            for category in db.scalars(
+                select(Category).where(Category.build_slug == "legacy-build")
+            ):
+                db.delete(category)
+            db.commit()
 
 def test_protected_page_uses_html_error_template_when_signed_out():
     with TestClient(app) as client:
         response = client.get("/submit")
         assert response.status_code == 401
         assert "Sign in with Discord" in response.text
-
 
 def test_discord_signup_is_not_created_until_turnstile_passes(monkeypatch):
     discord_id = "222222222222222222"
@@ -207,7 +295,6 @@ def test_discord_signup_is_not_created_until_turnstile_passes(monkeypatch):
         assert user.display_name == "New Runner"
         assert user.last_login_at is not None
 
-
 def test_regular_submission_requires_turnstile(monkeypatch):
     csrf_token = "submission-csrf"
     discord_id = "333333333333333333"
@@ -227,8 +314,7 @@ def test_regular_submission_requires_turnstile(monkeypatch):
             )
             category = Category(
                 slug="submission-captcha-test-category",
-                name="CAPTCHA Test Build - Submission Category",
-                short_name="Submission Category",
+                name="Submission Category",
                 build_slug="captcha-test-build",
                 build_name="CAPTCHA Test Build",
                 rules_file="rules/unused.md",
@@ -271,7 +357,6 @@ def test_regular_submission_requires_turnstile(monkeypatch):
         run = db.scalar(select(Run).where(Run.user_id == user_id))
         assert run is not None
         assert run.status == "pending"
-
 
 def test_user_can_edit_public_profile_with_preset_color():
     csrf_token = "profile-csrf"
@@ -340,7 +425,6 @@ def test_user_can_edit_public_profile_with_preset_color():
         assert profile is not None
         assert profile.background_color == "purple"
 
-
 def test_moderator_can_add_run_for_placeholder_discord_user():
     csrf_token = "test-csrf-token"
     discord_id = "123456789012345678"
@@ -354,8 +438,7 @@ def test_moderator_can_add_run_for_placeholder_discord_user():
             )
             first_category = Category(
                 slug="manual-run-test-category",
-                name="Manual Test Build - First Category",
-                short_name="First Category",
+                name="First Category",
                 build_slug="manual-test-build",
                 build_name="Manual Test Build",
                 display_order=1,
@@ -363,8 +446,7 @@ def test_moderator_can_add_run_for_placeholder_discord_user():
             )
             second_category = Category(
                 slug="edited-run-test-category",
-                name="Manual Test Build - Second Category",
-                short_name="Second Category",
+                name="Second Category",
                 build_slug="manual-test-build",
                 build_name="Manual Test Build",
                 display_order=2,
@@ -508,3 +590,365 @@ def test_moderator_can_add_run_for_placeholder_discord_user():
         assert db.scalar(select(func.count(User.id)).where(User.discord_id == discord_id)) == 1
         db.refresh(run)
         assert run.runner.display_name == "Current Discord Name"
+
+def test_multiple_owner_ids_share_owner_access(monkeypatch):
+    from dataclasses import replace
+
+    from app.config import settings as app_settings
+
+    first_owner_id = "777777777777777771"
+    second_owner_id = "777777777777777772"
+    regular_id = "777777777777777773"
+    moderator_id = "777777777777777774"
+    monkeypatch.setattr(
+        main_module,
+        "settings",
+        replace(app_settings, owner_discord_ids=(first_owner_id, second_owner_id)),
+    )
+
+    csrf_token = "multi-owner-csrf"
+    with TestClient(app) as client:
+        with SessionLocal() as db:
+            db.add_all([
+                User(discord_id=first_owner_id, username="First Owner", is_moderator=True),
+                User(discord_id=second_owner_id, username="Second Owner"),
+                User(discord_id=regular_id, username="Regular"),
+                User(discord_id=moderator_id, username="Regular Moderator", is_moderator=True),
+            ])
+            db.commit()
+            user_ids = {
+                user.discord_id: user.id
+                for user in db.scalars(
+                    select(User).where(
+                        User.discord_id.in_([first_owner_id, second_owner_id, regular_id, moderator_id])
+                    )
+                )
+            }
+
+        for discord_id, expected_status in [
+            (first_owner_id, 200),
+            (second_owner_id, 200),
+            (regular_id, 403),
+            (moderator_id, 403),
+        ]:
+            session_data = base64.b64encode(
+                json.dumps({"user_id": user_ids[discord_id], "csrf_token": csrf_token}).encode()
+            )
+            session_cookie = TimestampSigner("route-test-secret").sign(session_data).decode()
+            client.cookies.set("p2runs_session", session_cookie)
+            response = client.get("/owner/audit-log")
+            assert response.status_code == expected_status
+            response = client.get("/owner/mods")
+            assert response.status_code == expected_status
+            if expected_status == 200:
+                rows = re.findall(r"<tr[^>]*>(.*?)</tr>", response.text, re.S)
+                for owner_id in (first_owner_id, second_owner_id):
+                    row = next(row for row in rows if owner_id in row)
+                    assert "<td>Owner</td>" in row
+                    assert "/remove" not in row
+                moderator_row = next(row for row in rows if moderator_id in row)
+                assert "<td>Moderator</td>" in moderator_row
+                assert f'/owner/mods/{user_ids[moderator_id]}/remove' in moderator_row
+                assert regular_id not in response.text
+            client.cookies.clear()
+
+        with SessionLocal() as db:
+            for user in db.scalars(
+                select(User).where(
+                    User.discord_id.in_([first_owner_id, second_owner_id, regular_id, moderator_id])
+                )
+            ):
+                db.delete(user)
+            db.commit()
+
+def test_home_redirects_to_single_build():
+    with TestClient(app) as client:
+        response = client.get("/", follow_redirects=False)
+        assert response.status_code == 302
+        assert response.headers["location"] == "/july09"
+
+def test_home_lists_builds_when_multiple(monkeypatch):
+    monkeypatch.setattr(
+        main_module,
+        "BUILD_SEED",
+        [
+            {"slug": "build-a", "name": "Build A", "version": "1", "categories": []},
+            {"slug": "build-b", "name": "Build B", "version": "2", "categories": []},
+        ],
+    )
+    with TestClient(app) as client:
+        response = client.get("/")
+        assert response.status_code == 200
+        assert "Build A" in response.text
+        assert "Build B" in response.text
+
+def test_build_page_redirects_to_first_category():
+    with TestClient(app) as client:
+        response = client.get("/july09", follow_redirects=False)
+        assert response.status_code == 302
+        assert response.headers["location"] == "/july09/nme"
+
+def test_build_page_unknown_build_404():
+    with TestClient(app) as client:
+        response = client.get("/nosuchbuild")
+        assert response.status_code == 404
+        assert "Build not found" in response.text
+
+def test_category_page_shows_switcher_flags_and_sidebar():
+    with TestClient(app) as client:
+        with SessionLocal() as db:
+            category = db.scalar(
+                select(Category).where(
+                    Category.build_slug == "july09", Category.slug == "nme"
+                )
+            )
+            assert category is not None
+            category_id = category.id
+            runner = User(discord_id="888888888888888881", username="Flag Runner")
+            moderator = User(
+                discord_id="888888888888888882",
+                username="Sidebar Mod",
+                is_moderator=True,
+            )
+            db.add_all([runner, moderator])
+            db.flush()
+            run = Run(
+                runner=runner,
+                category=category,
+                time_ms=95_000,
+                video_url="https://youtu.be/flags",
+                splits_url="https://therun.gg/flags",
+                notes="Nice run with notes.",
+                status="approved",
+            )
+            run.submitted_at = utcnow()
+            db.add(run)
+            db.commit()
+            run_id = run.id
+            submitted_label = run.submitted_at.strftime("%Y-%m-%d %H:%M UTC")
+
+        response = client.get("/july09/nme")
+        assert response.status_code == 200
+        assert 'aria-label="Categories in July 2009"' in response.text
+        assert 'href="/july09/oob-sla"' in response.text
+        assert 'aria-current="page"' in response.text
+        assert 'aria-label="View splits for this run"' in response.text
+        assert 'class="icon icon-splits"' in response.text
+        assert 'class="icon icon-notes"' in response.text
+        assert "https://therun.gg/flags" in response.text
+        assert "ago" in response.text or "just now" in response.text
+        assert f'data-tip="{submitted_label}"' in response.text
+        assert f'data-href="/runs/{run_id}"' in response.text
+        assert "Latest runs" in response.text
+        assert "Moderators" in response.text
+        assert "Sidebar Mod" in response.text
+
+        with SessionLocal() as db:
+            db.delete(db.get(Run, run_id))
+            for user in db.scalars(
+                select(User).where(
+                    User.discord_id.in_(
+                        ["888888888888888881", "888888888888888882"]
+                    )
+                )
+            ):
+                db.delete(user)
+            db.commit()
+
+def test_submit_stores_optional_splits_url():
+    csrf_token = "splits-submit-csrf"
+    discord_id = "888888888888888883"
+    with TestClient(app) as client:
+        with SessionLocal() as db:
+            user = User(
+                discord_id=discord_id,
+                username="splits_submitter",
+                last_login_at=utcnow(),
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            user_id = user.id
+            category = db.scalar(
+                select(Category).where(
+                    Category.build_slug == "july09", Category.slug == "nme"
+                )
+            )
+            category_id = category.id
+
+        session_data = base64.b64encode(
+            json.dumps({"user_id": user_id, "csrf_token": csrf_token}).encode()
+        )
+        session_cookie = TimestampSigner("route-test-secret").sign(session_data).decode()
+        client.cookies.set("p2runs_session", session_cookie)
+
+        bad_response = client.post(
+            "/submit",
+            data={
+                "category_id": category_id,
+                "run_time": "1:35.000",
+                "video_url": "https://youtu.be/splits",
+                "splits_url": "not-a-url",
+                "notes": "",
+                "csrf_token": csrf_token,
+            },
+        )
+        assert bad_response.status_code == 422
+        assert "Splits URL" in bad_response.text
+
+        good_response = client.post(
+            "/submit",
+            data={
+                "category_id": category_id,
+                "run_time": "1:35.000",
+                "video_url": "https://youtu.be/splits",
+                "splits_url": "https://therun.gg/abc123",
+                "notes": "",
+                "csrf_token": csrf_token,
+            },
+            follow_redirects=False,
+        )
+        assert good_response.status_code == 303
+
+    with SessionLocal() as db:
+        run = db.scalar(select(Run).where(Run.user_id == user_id))
+        assert run is not None
+        assert run.splits_url == "https://therun.gg/abc123"
+        db.delete(run)
+        db.delete(db.get(User, user_id))
+        db.commit()
+
+
+def test_run_detail_shows_embed_cards_and_sidebar():
+    with TestClient(app) as client:
+        with SessionLocal() as db:
+            category = db.scalar(
+                select(Category).where(
+                    Category.build_slug == "july09", Category.slug == "nme"
+                )
+            )
+            assert category is not None
+            runner = User(discord_id="999999999999999991", username="Detail Runner")
+            reviewer = User(
+                discord_id="999999999999999992",
+                username="Detail Reviewer",
+                is_moderator=True,
+            )
+            db.add_all([runner, reviewer])
+            db.flush()
+            run = Run(
+                runner=runner,
+                category=category,
+                time_ms=100_000,
+                video_url="https://youtu.be/dQw4w9WgXcQ",
+                splits_url="https://therun.gg/detail",
+                notes="Detail notes here.",
+                status="approved",
+                reviewed_at=utcnow(),
+                reviewed_by_user_id=reviewer.id,
+            )
+            run.submitted_at = utcnow()
+            db.add(run)
+            db.commit()
+            run_id = run.id
+            submitted_label = run.submitted_at.strftime("%Y-%m-%d %H:%M UTC")
+
+        response = client.get(f"/runs/{run_id}")
+        assert response.status_code == 200
+        assert 'href="/july09"' in response.text
+        assert 'href="/july09/nme"' in response.text
+        assert "youtube-nocookie.com/embed/dQw4w9WgXcQ" in response.text
+        assert "Detail notes here." in response.text
+        assert response.text.index("Detail notes here.") < response.text.index("card-label")
+        assert submitted_label in response.text
+        assert "(just now)" in response.text
+        assert ">1st<" in response.text
+        assert "Detail Reviewer" in response.text
+        assert '<span class="status approved">approved</span>' in response.text
+        assert "Latest runs" in response.text
+        assert "Moderators" in response.text
+
+        with SessionLocal() as db:
+            db.delete(db.get(Run, run_id))
+            for user in db.scalars(
+                select(User).where(
+                    User.discord_id.in_(
+                        ["999999999999999991", "999999999999999992"]
+                    )
+                )
+            ):
+                db.delete(user)
+            db.commit()
+
+
+def test_run_detail_embeds_twitch_vod():
+    with TestClient(app) as client:
+        with SessionLocal() as db:
+            category = db.scalar(
+                select(Category).where(
+                    Category.build_slug == "july09", Category.slug == "nme"
+                )
+            )
+            assert category is not None
+            runner = User(discord_id="999999999999999993", username="Twitch Runner")
+            db.add(runner)
+            db.flush()
+            run = Run(
+                runner=runner,
+                category=category,
+                time_ms=110_000,
+                video_url="https://www.twitch.tv/videos/1234567890",
+                status="approved",
+            )
+            run.submitted_at = utcnow()
+            db.add(run)
+            db.commit()
+            run_id = run.id
+
+        response = client.get(f"/runs/{run_id}")
+        assert response.status_code == 200
+        assert "player.twitch.tv/?video=1234567890&amp;parent=testserver" in response.text
+
+        with SessionLocal() as db:
+            db.delete(db.get(Run, run_id))
+            db.delete(
+                db.scalar(select(User).where(User.discord_id == "999999999999999993"))
+            )
+            db.commit()
+
+
+def test_run_detail_plays_direct_video_file():
+    with TestClient(app) as client:
+        with SessionLocal() as db:
+            category = db.scalar(
+                select(Category).where(
+                    Category.build_slug == "july09", Category.slug == "nme"
+                )
+            )
+            assert category is not None
+            runner = User(discord_id="999999999999999994", username="Direct Runner")
+            db.add(runner)
+            db.flush()
+            run = Run(
+                runner=runner,
+                category=category,
+                time_ms=120_000,
+                video_url="https://example.com/proof.mp4",
+                status="approved",
+            )
+            run.submitted_at = utcnow()
+            db.add(run)
+            db.commit()
+            run_id = run.id
+
+        response = client.get(f"/runs/{run_id}")
+        assert response.status_code == 200
+        assert '<video controls preload="metadata" src="https://example.com/proof.mp4">' in response.text
+        assert "<iframe" not in response.text
+
+        with SessionLocal() as db:
+            db.delete(db.get(Run, run_id))
+            db.delete(
+                db.scalar(select(User).where(User.discord_id == "999999999999999994"))
+            )
+            db.commit()

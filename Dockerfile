@@ -19,6 +19,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 COPY app ./app
 COPY rules ./rules
+COPY alembic.ini ./
+COPY migrations ./migrations
 
 RUN mkdir -p /app/data \
     && useradd --create-home --uid 10001 appuser \

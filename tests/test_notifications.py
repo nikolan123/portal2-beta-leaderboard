@@ -8,7 +8,6 @@ def test_disabled_webhook_does_not_send(monkeypatch):
     monkeypatch.setattr(notifications.httpx, "post", lambda *a, **kw: (_ for _ in ()).throw(AssertionError("Unexpected request")))
     notifications.notify_moderation(1, "Runner", "Category", 1000)
 
-
 def test_webhook_payload_and_failure_handling(monkeypatch, caplog):
     from app import notifications
     secret_url = "https://discord.com/api/webhooks/test/secret"
@@ -36,7 +35,6 @@ def test_webhook_payload_and_failure_handling(monkeypatch, caplog):
     notifications.notify_moderation(12, "Runner", "Category", 1000)
     assert "notification failed" in caplog.text
     assert secret_url not in caplog.text
-
 
 def test_unexpected_notification_failure_does_not_escape(monkeypatch, caplog):
     from app import notifications
