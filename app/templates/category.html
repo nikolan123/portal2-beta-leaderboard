@@ -3,7 +3,7 @@
 {% block social_meta %}<meta property="og:title" content="{{ self.title()|striptags|forceescape }}">{% endblock %}
 {% block content %}
   <div class="title-row">
-    <div><p class="eyebrow">{{ category.build_name }} (v{{ category.build_version }})</p><h1>{{ category.name }}</h1></div>
+    <div><p class="eyebrow">{{ category.build_name }}{% if category.build_version %} (v{{ category.build_version }}){% endif %}</p><h1>{{ category.name }}</h1></div>
     <div class="category-actions">
       <form method="get" action="/{{ category.build_slug }}/{{ category.slug }}">
         <button class="obsolete-toggle" type="submit" name="show_obsolete"

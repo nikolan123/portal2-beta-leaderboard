@@ -698,11 +698,14 @@ def test_multiple_owner_ids_share_owner_access(monkeypatch):
                 db.delete(user)
             db.commit()
 
-def test_home_redirects_to_single_build():
+def test_home_redirects_to_single_build(monkeypatch):
+    monkeypatch.setattr(main_module, "BUILD_SEED", [
+        {"slug": "single-build", "name": "Single Build", "version": "", "categories": []},
+    ])
     with TestClient(app) as client:
         response = client.get("/", follow_redirects=False)
         assert response.status_code == 302
-        assert response.headers["location"] == "/july09"
+        assert response.headers["location"] == "/single-build"
 
 def test_home_lists_builds_when_multiple(monkeypatch):
     monkeypatch.setattr(

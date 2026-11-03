@@ -66,6 +66,19 @@ PROFILE_COLOR_VALUES = {color["value"] for color in PROFILE_COLORS}
 
 BUILD_SEED = [
     {
+        "slug": "fstop",
+        "name": "F-Stop (Project 2008)",
+        "version": "",
+        "categories": [
+            {
+                "slug": "any",
+                "name": "Any%",
+                "description": "",
+                "rules_file": "rules/fstop/any.md",
+            },
+        ],
+    },
+    {
         "slug": "july09",
         "name": "July 2009",
         "version": "852_0",
