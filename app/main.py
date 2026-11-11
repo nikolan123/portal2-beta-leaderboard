@@ -71,10 +71,10 @@ BUILD_SEED = [
         "version": "",
         "categories": [
             {
-                "slug": "any",
-                "name": "Any%",
+                "slug": "inbounds",
+                "name": "Inbounds (No SLA)",
                 "description": "",
-                "rules_file": "rules/fstop/any.md",
+                "rules_file": "rules/fstop/inbounds.md",
             },
         ],
     },
