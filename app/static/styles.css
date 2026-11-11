@@ -35,6 +35,15 @@
   --success: #8bd49b;
 }
 
+.run-flag {
+  display: block;
+  color: var(--warning);
+  font-size: 14px;
+  font-weight: normal;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 * {
   box-sizing: border-box;
 }

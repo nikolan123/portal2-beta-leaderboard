@@ -104,8 +104,8 @@ def test_upgrade_preserves_data_and_matches_models(migration_engine, versioned):
     after = snapshot(migration_engine)["data"]
     for name in ["users", "user_profiles", "audit_logs"]:
         assert after[name] == before[name]
-    assert after["runs"][0][:-1] == before["runs"][0]
-    assert after["runs"][0][-1] == ""
+    assert after["runs"][0][:-2] == before["runs"][0]
+    assert after["runs"][0][-2:] == ("", "")
     with migration_engine.connect() as connection:
         rows = connection.execute(text("SELECT * FROM categories ORDER BY id")).mappings().all()
         assert [(row["id"], row["build_slug"], row["slug"], row["name"]) for row in rows] == [

@@ -42,7 +42,7 @@ def load_settings() -> Settings:
         Path("data").mkdir(parents=True, exist_ok=True)
 
     return Settings(
-        app_name=os.getenv("APP_NAME", "Portal 2 Runs"),
+        app_name=os.getenv("APP_NAME", "Portal Series Beta Speedrun Leaderboard"),
         base_url=base_url,
         discord_client_id=os.getenv("DISCORD_CLIENT_ID", ""),
         discord_client_secret=os.getenv("DISCORD_CLIENT_SECRET", ""),

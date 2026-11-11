@@ -3,7 +3,7 @@
 {% block social_meta %}<meta property="og:title" content="{{ self.title()|striptags|forceescape }}">{% endblock %}
 {% block content %}
   <div class="title-row">
-    <div><p class="eyebrow">{{ category.build_name }} (v{{ category.build_version }})</p><h1>{{ category.name }}</h1></div>
+    <div><p class="eyebrow">{{ category.build_name }}{% if category.build_version %} (v{{ category.build_version }}){% endif %}</p><h1>{{ category.name }}</h1></div>
     <div class="category-actions">
       <form method="get" action="/{{ category.build_slug }}/{{ category.slug }}">
         <button class="obsolete-toggle" type="submit" name="show_obsolete"
@@ -63,7 +63,7 @@
                     {% endif %}
                   </div>
                 </td>
-                <td class="time"><a href="/runs/{{ run.id }}">{{ run.time_ms|runtime }}</a></td>
+                <td class="time"><a href="/runs/{{ run.id }}">{{ run.time_ms|runtime }}</a>{% if run.moderation_flag %}<span class="run-flag">{{ run.moderation_flag }}</span>{% endif %}</td>
                 <td class="date"><span data-tip="{{ run.submitted_at.strftime('%Y-%m-%d %H:%M UTC') }}">{{ run.submitted_at|timeago }}</span></td>
                   <td>
                     {% if run.video_url %}

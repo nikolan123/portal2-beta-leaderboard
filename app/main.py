@@ -66,6 +66,19 @@ PROFILE_COLOR_VALUES = {color["value"] for color in PROFILE_COLORS}
 
 BUILD_SEED = [
     {
+        "slug": "fstop",
+        "name": "F-Stop (Project 2008)",
+        "version": "",
+        "categories": [
+            {
+                "slug": "inbounds",
+                "name": "Inbounds (No SLA)",
+                "description": "",
+                "rules_file": "rules/fstop/inbounds.md",
+            },
+        ],
+    },
+    {
         "slug": "july09",
         "name": "July 2009",
         "version": "852_0",
@@ -860,6 +873,32 @@ def delete_run(
     destination = "/moderation" if return_to == "moderation" else f"/{run.category.build_slug}/{run.category.slug}"
     return RedirectResponse(destination, status_code=status.HTTP_303_SEE_OTHER)
 
+@app.post("/moderation/runs/{run_id}/flag")
+def set_run_flag(
+    run_id: int,
+    request: Request,
+    moderation_flag: str = Form(""),
+    csrf_token: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    moderator = require_moderator(request, db)
+    verify_csrf(request, csrf_token)
+    run = db.get(Run, run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found.")
+    label = moderation_flag.strip()
+    if len(label) > 200:
+        raise HTTPException(status_code=422, detail="Flag must be 200 characters or fewer.")
+    if run.moderation_flag != label:
+        audit_run_event(
+            db, "edited", moderator, run,
+            details=f"Moderation flag: {run.moderation_flag or '(none)'} to {label or '(none)' }.",
+        )
+        run.moderation_flag = label
+        db.commit()
+    return RedirectResponse(f"/runs/{run.id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
 @app.get("/moderation", response_class=HTMLResponse)
 def moderation(request: Request, db: Session = Depends(get_db)):
     require_moderator(request, db)
@@ -921,6 +960,7 @@ def edit_run_as_moderator_form(
                 "video_url": run.video_url,
                 "splits_url": run.splits_url,
                 "notes": run.notes,
+                "moderation_flag": run.moderation_flag,
             },
             errors=[],
         ),
@@ -939,6 +979,7 @@ def edit_run_as_moderator(
     video_url: str = Form(...),
     splits_url: str = Form(""),
     notes: str = Form(""),
+    moderation_flag: str = Form(""),
     csrf_token: str = Form(...),
     db: Session = Depends(get_db),
 ):
@@ -990,6 +1031,10 @@ def edit_run_as_moderator(
     if len(clean_notes) > 2000:
         errors.append("Notes must be 2,000 characters or fewer.")
 
+    clean_flag = moderation_flag.strip()
+    if len(clean_flag) > 200:
+        errors.append("Flag must be 200 characters or fewer.")
+
     values = {
         "discord_id": discord_id,
         "temporary_display_name": temporary_display_name,
@@ -998,6 +1043,7 @@ def edit_run_as_moderator(
         "video_url": video_url,
         "splits_url": splits_url,
         "notes": notes,
+        "moderation_flag": moderation_flag,
     }
 
     if errors:
@@ -1055,6 +1101,9 @@ def edit_run_as_moderator(
         changes.append("Splits URL changed.")
     if old_notes != clean_notes:
         changes.append("Notes changed.")
+    if run.moderation_flag != clean_flag:
+        changes.append(f"Moderation flag: {run.moderation_flag or '(none)'} to {clean_flag or '(none)'}.")
+    run.moderation_flag = clean_flag
 
     run.user_id = runner.id
     run.category_id = category.id

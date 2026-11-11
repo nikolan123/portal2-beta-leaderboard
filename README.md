@@ -1,6 +1,6 @@
-# Portal 2 Beta Speedrun Leaderboard
+# Portal Series Beta Speedrun Leaderboard
 
-A leaderboard for Portal 2 beta speedruns.
+A leaderboard for Portal series beta speedruns.
 
 ## Setup
 
