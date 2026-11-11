@@ -5,6 +5,7 @@ import re
 
 from fastapi.testclient import TestClient
 from itsdangerous import TimestampSigner
+from markupsafe import escape
 from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload
 
@@ -55,7 +56,7 @@ def test_public_pages_render_with_current_starlette():
         response = client.get("/")
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
-        assert "Portal 2" in response.text
+        assert f"<title>{escape(main_module.settings.app_name)}</title>" in response.text
         assert '<meta property="og:title"' in response.text
         assert f'styles.css?v={main_module.CSS_VERSION}' in response.text
         css_response = client.get(f"/static/styles.css?v={main_module.CSS_VERSION}")
