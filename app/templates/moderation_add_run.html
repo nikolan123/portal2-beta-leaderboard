@@ -52,6 +52,10 @@
       Notes <span class="muted">(optional)</span>
       <textarea name="notes" rows="4" maxlength="2000">{{ values.notes or '' }}</textarea>
     </label>
+    <label>
+      Moderator flag <span class="muted">(optional)</span>
+      <input name="moderation_flag" value="{{ values.moderation_flag or '' }}" maxlength="200" placeholder="Timing unverified (no autosplitter yet)">
+    </label>
     <button type="submit">Add approved run</button>
   </form>
 {% endblock %}

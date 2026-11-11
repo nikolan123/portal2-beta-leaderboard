@@ -547,21 +547,36 @@ def test_moderator_can_add_run_for_placeholder_discord_user():
         assert form_response.status_code == 200
         assert 'name="temporary_display_name"' in form_response.text
 
-        response = client.post(
-            "/moderation/runs/add",
-            data={
+        form_data = {
                 "discord_id": discord_id,
                 "temporary_display_name": "Temporary Runner",
                 "category_id": category_id,
                 "run_time": "1:23.456",
                 "video_url": "https://youtu.be/example",
                 "notes": "Imported by a moderator.",
+                "moderation_flag": "Timing unverified (no autosplitter yet)",
                 "csrf_token": csrf_token,
-            },
+        }
+        invalid_response = client.post(
+            "/moderation/runs/add",
+            data={**form_data, "moderation_flag": "x" * 201},
+        )
+        assert invalid_response.status_code == 422
+        with SessionLocal() as db:
+            assert db.scalar(select(User).where(User.discord_id == discord_id)) is None
+
+        response = client.post(
+            "/moderation/runs/add",
+            data=form_data,
             follow_redirects=False,
         )
         assert response.status_code == 303
         run_id = int(response.headers["location"].rsplit("/", 1)[-1])
+
+        with SessionLocal() as db:
+            assert db.get(Run, run_id).moderation_flag == form_data["moderation_flag"]
+            entry = db.scalar(select(AuditLog).where(AuditLog.run_id == run_id))
+            assert form_data["moderation_flag"] in entry.details
 
         edit_form_response = client.get(f"/moderation/runs/{run_id}/edit")
         assert edit_form_response.status_code == 200

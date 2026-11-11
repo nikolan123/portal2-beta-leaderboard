@@ -1146,6 +1146,7 @@ def add_run_as_moderator(
     video_url: str = Form(...),
     splits_url: str = Form(""),
     notes: str = Form(""),
+    moderation_flag: str = Form(""),
     csrf_token: str = Form(...),
     db: Session = Depends(get_db),
 ):
@@ -1155,6 +1156,7 @@ def add_run_as_moderator(
     clean_discord_id = discord_id.strip()
     clean_display_name = temporary_display_name.strip()
     clean_notes = notes.strip()
+    clean_flag = moderation_flag.strip()
     category = db.get(Category, category_id)
     errors: list[str] = []
 
@@ -1188,6 +1190,9 @@ def add_run_as_moderator(
     if len(clean_notes) > 2000:
         errors.append("Notes must be 2,000 characters or fewer.")
 
+    if len(clean_flag) > 200:
+        errors.append("Flag must be 200 characters or fewer.")
+
     if errors:
         categories = db.scalars(
             select(Category).order_by(Category.build_order, Category.display_order)
@@ -1206,6 +1211,7 @@ def add_run_as_moderator(
                     "video_url": video_url,
                     "splits_url": splits_url,
                     "notes": notes,
+                    "moderation_flag": moderation_flag,
                 },
                 errors=errors,
             ),
@@ -1227,6 +1233,7 @@ def add_run_as_moderator(
         video_url=clean_video_url,
         splits_url=clean_splits_url,
         notes=clean_notes,
+        moderation_flag=clean_flag,
         status="approved",
         reviewed_at=utcnow(),
         reviewed_by_user_id=moderator.id,
@@ -1241,7 +1248,7 @@ def add_run_as_moderator(
         run,
         runner=runner,
         category=category,
-        details="Approved when added manually.",
+        details="Approved when added manually." + (f" Moderation flag: {clean_flag}." if clean_flag else ""),
     )
     db.commit()
     db.refresh(run)
