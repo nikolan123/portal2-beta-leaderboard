@@ -30,7 +30,7 @@
           {% for run in runs %}
             <tr>
               <td><a href="/{{ run.category.build_slug }}/{{ run.category.slug }}">{{ run.category.build_name }} &bullet; {{ run.category.name }}</a></td>
-              <td class="time"><a href="/runs/{{ run.id }}">{{ run.time_ms|runtime }}</a></td>
+              <td class="time"><a href="/runs/{{ run.id }}">{{ run.time_ms|runtime }}</a>{% if run.moderation_flag %}<span class="run-flag">{{ run.moderation_flag }}</span>{% endif %}</td>
               {% if own_profile %}<td><span class="status {{ run.status }}">{{ run.status }}</span></td>{% endif %}
               <td>{{ run.submitted_at.strftime('%Y-%m-%d') }}</td>
             </tr>

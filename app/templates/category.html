@@ -63,7 +63,7 @@
                     {% endif %}
                   </div>
                 </td>
-                <td class="time"><a href="/runs/{{ run.id }}">{{ run.time_ms|runtime }}</a></td>
+                <td class="time"><a href="/runs/{{ run.id }}">{{ run.time_ms|runtime }}</a>{% if run.moderation_flag %}<span class="run-flag">{{ run.moderation_flag }}</span>{% endif %}</td>
                 <td class="date"><span data-tip="{{ run.submitted_at.strftime('%Y-%m-%d %H:%M UTC') }}">{{ run.submitted_at|timeago }}</span></td>
                   <td>
                     {% if run.video_url %}

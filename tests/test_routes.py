@@ -14,6 +14,42 @@ import app.main as main_module
 from app.main import app
 from app.models import AuditLog, Category, Run, User, UserProfile, utcnow
 
+def test_moderator_flag_permissions_display_and_removal():
+    with TestClient(app) as client:
+        with SessionLocal() as db:
+            runner = User(discord_id="flag-runner", username="Flag runner")
+            moderator = User(discord_id="flag-mod", username="Flag mod", is_moderator=True)
+            category = Category(slug="flag-test", build_slug="flag-build", name="Flag category")
+            db.add_all([runner, moderator, category])
+            db.flush()
+            run = Run(user_id=runner.id, category_id=category.id, time_ms=1000,
+                      video_url="https://example.com/video", status="approved")
+            db.add(run)
+            db.commit()
+            run_id, runner_id, mod_id = run.id, runner.id, moderator.id
+
+        def sign_in(user_id):
+            data = base64.b64encode(json.dumps({"user_id": user_id, "csrf_token": "flag-csrf"}).encode())
+            client.cookies.set("p2runs_session", TimestampSigner("route-test-secret").sign(data).decode())
+
+        url = f"/moderation/runs/{run_id}/flag"
+        sign_in(runner_id)
+        assert client.post(url, data={"csrf_token": "flag-csrf", "moderation_flag": "unverified"}).status_code == 403
+        sign_in(mod_id)
+        assert client.post(url, data={"csrf_token": "bad", "moderation_flag": "unverified"}).status_code == 403
+        assert client.post(url, data={"csrf_token": "flag-csrf", "moderation_flag": "x" * 201}).status_code == 422
+        response = client.post(url, data={"csrf_token": "flag-csrf", "moderation_flag": "Timing unverified <script>"}, follow_redirects=False)
+        assert response.status_code == 303
+        assert "Timing unverified &lt;script&gt;" in client.get(f"/runs/{run_id}").text
+        assert "Timing unverified &lt;script&gt;" in client.get("/flag-build/flag-test").text
+        with SessionLocal() as db:
+            assert db.get(Run, run_id).status == "approved"
+            assert db.scalar(select(AuditLog).where(AuditLog.run_id == run_id)) is not None
+        client.post(url, data={"csrf_token": "flag-csrf", "moderation_flag": ""})
+        with SessionLocal() as db:
+            assert db.get(Run, run_id).moderation_flag == ""
+
+
 def test_public_pages_render_with_current_starlette():
     with TestClient(app) as client:
         response = client.get("/")

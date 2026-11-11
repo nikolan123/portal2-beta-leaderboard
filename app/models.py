@@ -91,6 +91,7 @@ class Run(Base):
     video_url: Mapped[str] = mapped_column(String(500))
     splits_url: Mapped[str] = mapped_column(String(500), default="", server_default=text("''"))
     notes: Mapped[str] = mapped_column(Text, default="")
+    moderation_flag: Mapped[str] = mapped_column(String(200), default="", server_default=text("''"))
     status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

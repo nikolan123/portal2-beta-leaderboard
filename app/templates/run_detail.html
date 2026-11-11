@@ -6,6 +6,7 @@
   <div>
     <p class="eyebrow"><a href="/{{ run.category.build_slug }}">{{ run.category.build_name }}{% if run.category.build_version %} (v{{ run.category.build_version }}){% endif %}</a> &bullet; <a href="/{{ run.category.build_slug }}/{{ run.category.slug }}">{{ run.category.name }}</a></p>
     <h1 class="run-time-head">{{ run.time_ms|runtime }}</h1>
+    {% if run.moderation_flag %}<p class="run-flag">{{ run.moderation_flag }}</p>{% endif %}
     {% if embed_url %}
       <div class="video-embed"><iframe src="{{ embed_url }}" title="Embedded proof video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
       <p class="muted proof-links">
